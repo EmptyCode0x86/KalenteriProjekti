@@ -133,6 +133,53 @@ Ennen merkinnän luontia käyttäjä voi muokata yksittäisiä ehdotuksia (kynä
 
 ---
 
+## Älykäs Uudelleenjärjestely (Smart Rescheduling)
+
+Kun kalenteri on täysi, "Älykäs haku" voi auttaa löytämään tilaa siirtämällä vähemmän tärkeitä omia varauksia.
+
+### Miten se toimii?
+
+Kun valitset **"Etsi myös siirrettävät ajat"**, algoritmi tekee seuraavat asiat:
+1.  **Analyysi**: Se käy läpi varatut ajat ja tunnistaa, mitkä niistä ovat "siirrettäviä".
+2.  **Pisteytys**: Varaus katsotaan siirrettäväksi (Moveable), jos:
+    *   **Olet järjestäjä (Organizer):** Sinulla on valta siirtää se.
+    *   **Ei muita osallistujia:** Kyseessä on oma työaika (esim. "Focus", "Suunnittelu"), ei palaveri.
+    *   **Status on normaali:** Ei ole merkitty "Out of Office" -tilaan.
+    *   **Ei toistuva:** Toistuvien sarjojen siirtäminen on riskialtista, joten niihin ei kosketa.
+3.  **Haku**: Järjestelmä etsii vapaata aikaa *kuvittelemalla*, että nämä siirrettävät varaukset eivät ole tiellä.
+4.  **Ehdotus**: Jos aika löytyy tällaisen varauksen päältä, se ehdotetaan sinulle varoituksella: _"Vapaa JOS siirrät: 'Oma suunnittelu'"_.
+
+
+### Mitä se ehdottaa siirrettäväksi?
+
+Sovelluksen itse luomista merkinnöistä:
+
+*   **✅ Suunnittelu (Planning) ja Valmistelu (Preparation):**
+    *   Nämä luodaan ilman muita osallistujia.
+    *   Järjestelmä tulkitsee ne omaksi työajaksi, jota voi tarvittaessa siirtää tärkeämmän tieltä.
+    *   *Esimerkki: "Suunnittelu 1/3: Asiakas Oy"*
+
+*   **❌ Teams-palaveri:**
+    *   Nämä luodaan online-kokouksina.
+    *   Järjestelmä pitää näitä kiinteinä aikatauluvarauksina, eikä ehdota niiden siirtämistä (vaikka olisit niissä yksin).
+
+Tämä on **deterministinen heuristiikka**. Se ei käytä tekoälyä arvailuun, vaan noudattaa tiukkoja sääntöjä (Organizer + No Attendees), jotta se ei koskaan ehdota asiakaspalaverin siirtoa.
+
+---
+
+## Tietosuoja ja luetut tiedot (Privacy)
+
+Jotta sovellus voi toimia älykkäästi, se lukee kalenteristasi seuraavat tiedot Microsoft Graph -rajapinnan kautta (`Calendar.ReadWrite`):
+
+1.  **Ajankohta:** `start`, `end`, `timeZone` (Milloin varaus on)
+2.  **Tila:** `showAs` (Onko aika varattu, vapaa, alustava vai "Out of Office")
+3.  **Otsikko:** `subject` (Tarvitaan "Älykkäässä haussa" tunnistamaan omat merkinnät, kuten "Lounas")
+4.  **Osallistujat:** `attendees` (Onko muita mukana? Jos on, emme ehdota siirtoa)
+5.  **Järjestäjä:** `isOrganizer` (Oletko sinä luonut varauksen?)
+6.  **Toistuvuus:** `recurrence`, `type` (Onko kyseessä toistuva sarja?)
+
+**Huomio:** Sovellus **EI** lue sähköpostien sisältöä, liitetiedostoja tai body-tekstiä. Se käsittelee vain kalenterin metatietoja aikataulutusta varten. Kaikki tiedot käsitellään väliaikaisesti muistissa.
+
 ## Yhteenveto
 
 Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. Kaikki tämä tapahtuu yhdellä "Etsi vapaat ajat" -napin painalluksella. **"Etsi varatut ajat"** -nappi näyttää jo luodut merkinnät ilman vapaiden aikojen hakua.
