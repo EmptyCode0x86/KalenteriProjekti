@@ -179,3 +179,22 @@ Jotta sovellus voi toimia älykkäästi, se lukee kalenteristasi seuraavat tiedo
 ## Yhteenveto
 
 Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. Kaikki tämä tapahtuu yhdellä "Etsi vapaat ajat" -napin painalluksella. **"Etsi varatut ajat"** -nappi näyttää jo luodut merkinnät ilman vapaiden aikojen hakua.
+
+---
+
+## Tietoturvallisuus
+
+Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
+
+| Suoja | Mitä vaikuttaa |
+|-------|----------------|
+| **Rate Limiting** | Rajoittaa pyyntömäärää (100 req / 10 s per käyttäjä tai IP). Estää DoS-hyökkäyksiä ja API:n kuormituksen. |
+| **JWT-autentikaatio** | Varmistaa, että vain kirjautuneet käyttäjät pääsevät API-endpointeihin. Supabase-token validoidaan jokaisella suojatulla pyynnöllä. |
+| **CORS** | Sallii pyynnöt vain määritellyistä alkuperistä (dev: localhost, prod: whitelist). Estää muut sivustot käyttämästä API:asi. |
+| **Security Headers** | CSP, X-Frame-Options, X-Content-Type-Options, HSTS jne. Vähentävät XSS-, clickjacking- ja MIME-sniffing -riskejä. |
+| **HTTPS (tuotanto)** | Pakottaa salatun yhteyden tuotannossa. Suojaa datan man-in-the-middle -hyökkäyksiltä. |
+| **OAuth state + CSRF** | Microsoft-kirjautumisen `state`-parametri on HMAC-allekirjoitettu. Estää väärennetyt OAuth-callbackit. |
+| **Token-salaus** | Microsoft Graph -tokenit salataan (AES-256) ennen tietokantaan tallennusta. Suojaa, vaikka tietokanta vuotaisi. |
+| **Input Validation** | FluentValidation tarkistaa syötteet (esim. preferenssit) ennen käsittelyä. Estää virheellisen tai haitallisen datan. |
+| **PII-maskaus** | Sähköposteja ei kirjoiteta logeihin selkokielisinä (maskataan tyyliin `m***@firma.fi`). Vähentää henkilötietojen vuotamista lokista. |
+| **API-avainten suojaus** | Arkaluonteiset avaimet (JWT Secret, Microsoft Graph ClientSecret) säilytetään backendin `.env`-tiedostossa, eivät koskaan repossa tai frontendissa. Frontend saa vain Supabasen anon key (suunniteltu julkiseksi; RLS rajaa oikeudet). service_role -avainta ei käytetä client-puolella. Graph-tokenit salataan tietokantaan. |
