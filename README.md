@@ -4,7 +4,7 @@ Tämä dokumentti kuvaa **Calendar Assistant** -sovelluksen toimintaa: miten se 
 
 ---
 
-## Ideanä kulissien takana
+## Idea
 
 **Calendar Assistant** automaattistaa valmennusprojektien kalenterointia. Sen tehtävä on yksinkertainen:
 
