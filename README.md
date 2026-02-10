@@ -129,7 +129,7 @@ Ennen merkinnän luontia käyttäjä voi muokata yksittäisiä ehdotuksia (kynä
 
 ---
 
-## Älykäs Uudelleenjärjestely (Smart Rescheduling)
+## Älykäs Uudelleenjärjestely (Smart Rescheduling) ( KESKENERÄINEN OMINAISUUS )
 
 Kun kalenteri on täysi, "Älykäs haku" voi auttaa löytämään tilaa siirtämällä vähemmän tärkeitä omia varauksia.
 
