@@ -92,8 +92,6 @@ Lopuksi tarpeet ja vapaat ajat yhdistetään.
    - Ei ole jo käytetty toiseen ehdotukseen
    - Ei riko minimiväliä edellisen ehdotuksen jälkeen
    - Suositaan ensin "Preferred"-aikoja
-   - Suositaan valmennuspäivän kuukauden slotteja
-   - Suositaan aikoja lähellä valmennuspäivää
 
 3. **Onnistunut haku**  
    Kun sopiva aika löytyy, luodaan ehdotus ja annetaan luotettavuus:
@@ -109,8 +107,6 @@ Lopuksi tarpeet ja vapaat ajat yhdistetään.
 
 | Ominaisuus | Selitys |
 |------------|---------|
-| **Deadline-kuukausi** | Slotteja suositaan valmennuspäivän kuukaudelta (esim. valmennuspäivä 27.3. → maaliskuun slotit ensin) |
-| **Etäisyys deadlineen** | Jos useita sopivia slotteja on, valitaan aika lähellä valmennuspäivää |
 | **Minimiväli ehdotusten välillä** | Ehdotusten välillä vaaditaan tauko (esim. 30 min). Esim. 08–11 ja 11–14 eivät kelpaa peräkkäin; seuraava voi alkaa vasta 11:30 |
 | **Jäljellä olevan ajan käyttö** | Kun slotista käytetään vain osa (esim. 08–11 osana 08–16), jäljellä oleva aika (11:30–16) lisätään käytettävissä oleviin. Näin samalle päivälle voi tulla useampi ehdotus ilman päällekkäisyyksiä |
 
