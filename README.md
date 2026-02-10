@@ -1,2 +1,123 @@
-# KalenteriProjekti
-Kalenteri Automaatio
+# KalenteriProjektin toimintalogiikka
+
+Tämä dokumentti kuvaa **Calendar Assistant** -sovelluksen toimintaa: miten se etsii vapaat ajat ja luo ehdotukset kalenterimerkintöihin. Dokumentti on kirjoitettu niin, että sekä tavallinen käyttäjä että kehittäjä ymmärtävät järjestelmän.
+
+---
+
+## Ideanä kulissien takana
+
+**Calendar Assistant** automaattistaa valmennusprojektien kalenterointia. Sen tehtävä on yksinkertainen:
+
+1. Sinulla on projekti, joka vaatii useita kalenterimerkintöjä (esim. suunnitteluaikoja, Teams-palaveri, valmistelutöitä).
+2. Sovellus hakee sinun (ja mahdollisesti valmentajan) kalenterin varaukset.
+3. Se etsii vapaat ajat ja ehdottaa sopivia aikavälit – yhdellä klikkauksella.
+
+Algoritmi toimii kuin palapeli: se pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista "reiät" ja sovittaa palaset niihin, huomioiden tauot ja suosituimmat ajat.
+
+---
+
+## Käyttäjän näkökulmasta: mitä tapahtuu?
+
+| Vaihe | Mitä käyttäjä tekee | Mitä järjestelmä tekee taustalla |
+|-------|---------------------|----------------------------------|
+| 1 | Luo projektin (nimi, valmennuspäivä, tyyppi) | Laskee, montako kalenterimerkintää tarvitaan ja millaisia (suunnittelu, Teams, valmistelu) |
+| 2 | Klikkaa "Etsi vapaat ajat" | Hakee sinun ja valmentajan kalenterit, etsii vapaat ajat, luo ehdotukset |
+| 3 | Valitsee ehdotukset ja klikkaa "Luo merkinnät" | Tarkistaa vielä kerran, että ajat ovat vapaat, luo merkinnät kalenteriin |
+
+**Tärkeää:** Jos valmentajan sähköposti on asetettu, järjestelmä tarkistaa molemmat kalenterit. Ehdotetut ajat ovat vapaat sekä sinulle että valmentajalle (valmentajan tili tulee olla Microsoft 365 -tilillä).
+
+---
+
+## Projektityypit ja tarvittavat ajat
+
+Kun valitset projektityypin, järjestelmä laskee automaattisesti tarvittavat aikavälit:
+
+| Projekti | Suunnittelu | Teams-palaveri | Valmistelu | Yhteensä |
+|----------|-------------|----------------|------------|----------|
+| **Standard** | 2 × 3 h | 1 × 1 h | 2 × 3 h | 13 h |
+| **Express** | 1 × 3 h | 1 × 1 h | 1 × 3 h | 7 h |
+| **Extended** | 3 × 3 h | 1 × 2 h | 3 × 3 h | 20 h |
+
+Teams-palaveri voi sisältää valmentajan sähköpostin, jos se on asetettu preferensseissä.
+
+---
+
+## Miten vapaa aika löydetään? (Algoritmin ytimessä)
+
+Aikataulutusmoottori toimii kolmessa vaiheessa. Tämä on se osa, joka tekee "magian" – tässä selitetään tarkasti miten.
+
+### Vaihe 1: Tarpeen laskenta (`CalculateRequiredSlots`)
+
+Ensin järjestelmä määrittää, mitä projekti vaatii:
+- Montako slotia kustakin tyypistä (suunnittelu, Teams, valmistelu)
+- Kuinka pitkiä ne ovat (esim. 3 h)
+- Missä järjestyksessä ne tulevat (prioriteetti: suunnittelu ensin, sitten Teams, sitten valmistelu)
+
+### Vaihe 2: Vapaiden aikojen etsintä (`FindAvailableSlots`)
+
+Tämä on logiikan sydän. Järjestelmä käy läpi päivät ja etsii sopivia aikoja.
+
+1. **Työpäivät**  
+   Vain sellaiset päivät huomioidaan, jotka on merkitty työpäiviksi (ma–su, asetuksista).
+
+2. **Työaika**  
+   Työajan ulkopuolelle ei ehdoteta aikoja (esim. 8:00–16:00).
+
+3. **Varaukset**  
+   Haetaan kaikki varaukset kyseiselle päivälle – sekä sinun että valmentajan kalenterista (jos valmentaja on määritelty).
+
+4. **Aukkojen etsintä**  
+   Algoritmi etenee aikajanalla aina seuraavaan varaukseen asti:
+   - **Tauko ennen varausta:** Jos seuraava varaus alkaa klo 11:00, vapaa aika päättyy 10:30 (30 min tauko oletuksena).
+   - **Tauko varauksen jälkeen:** Varauksen (esim. 10:00–11:00) jälkeen seuraava vapaa aika voi alkaa vasta 11:30.
+   - **Vähimmäispituus:** Jos aukko on alle 1 tunnin, sitä ei käytetä.
+
+5. **Suositeltu aika**  
+   Jos vapaa aika osuu "suositeltuun aikaan" (esim. 8:00–12:00), se merkitään prioriteettiseksi (`IsPreferred`). Nämä valitaan ensin.
+
+### Vaihe 3: Ehdotusten luominen (`GenerateProposals`)
+
+Lopuksi tarpeet ja vapaat ajat yhdistetään.
+
+1. **Prioriteettijärjestys**  
+   Välilyönnit täytetään tärkeysjärjestyksessä: ensin suunnittelu, sitten Teams, sitten valmistelu.
+
+2. **Sopivan ajan valinta**  
+   Jokaiselle tarvittavalle välille etsitään vapaa aika, joka:
+   - On riittävän pitkä (esim. 3 h)
+   - Ei ole jo käytetty toiseen ehdotukseen
+   - Ei riko minimiväliä edellisen ehdotuksen jälkeen
+   - Suositaan ensin "Preferred"-aikoja
+   - Suositaan valmennuspäivän kuukauden slotteja
+   - Suositaan aikoja lähellä valmennuspäivää
+
+3. **Onnistunut haku**  
+   Kun sopiva aika löytyy, luodaan ehdotus ja annetaan luotettavuus:
+   - **1.0** = täydellinen osuma (suositeltu aika)
+   - **0.8** = hyvä aika, ei suositeltu ikkuna
+
+4. **Varatilanne (fallback)**  
+   Jos 3 h:n tarkkaa aikaa ei löydy, valitaan lyhyempi vapaa aika ja näytetään varoitus: *"Ei täydellistä aikaa, lyhennetty"* (luotettavuus 0.5).
+
+---
+
+## Lisäominaisuudet (tarkennukset)
+
+| Ominaisuus | Selitys |
+|------------|---------|
+| **Deadline-kuukausi** | Slotteja suositaan valmennuspäivän kuukaudelta (esim. valmennuspäivä 27.3. → maaliskuun slotit ensin) |
+| **Etäisyys deadlineen** | Jos useita sopivia slotteja on, valitaan aika lähellä valmennuspäivää |
+| **Minimiväli ehdotusten välillä** | Ehdotusten välillä vaaditaan tauko (esim. 30 min). Esim. 08–11 ja 11–14 eivät kelpaa peräkkäin; seuraava voi alkaa vasta 11:30 |
+| **Jäljellä olevan ajan käyttö** | Kun slotista käytetään vain osa (esim. 08–11 osana 08–16), jäljellä oleva aika (11:30–16) lisätään käytettävissä oleviin. Näin samalle päivälle voi tulla useampi ehdotus ilman päällekkäisyyksiä |
+
+---
+
+## Tarkistus ennen merkinnän luontia
+
+Ennen kuin merkintä luodaan kalenteriin, järjestelmä tarkistaa vielä kerran (`IsSlotStillAvailable`), että aika on vapaa – myös valmentajan kalenterilla, jos sellainen on käytössä. Jos aika on jo varattu (toinen käyttäjä varaa samaan aikaan), merkintää ei luoda ja käyttäjälle näytetään virheviesti.
+
+---
+
+## Yhteenveto
+
+Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. Kaikki tämä tapahtuu yhdellä "Etsi vapaat ajat" -napin painalluksella.
