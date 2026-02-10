@@ -22,9 +22,13 @@ Algoritmi toimii kuin palapeli: se pilkkoo projektin tarvitsemiin aikoihin, etsi
 |-------|---------------------|----------------------------------|
 | 1 | Luo projektin (nimi, valmennuspäivä, tyyppi) | Laskee, montako kalenterimerkintää tarvitaan ja millaisia (suunnittelu, Teams, valmistelu) |
 | 2 | Klikkaa "Etsi vapaat ajat" | Hakee sinun ja valmentajan kalenterit, etsii vapaat ajat, luo ehdotukset |
+| 2b | Klikkaa "Etsi varatut ajat" | Hakee sovelluksen kautta luodut merkinnät aikavälillä (tänään → valmennuspäivä). Näyttää vain kalenterissa olevat (poistetut ei näy). |
 | 3 | Valitsee ehdotukset ja klikkaa "Luo merkinnät" | Tarkistaa vielä kerran, että ajat ovat vapaat, luo merkinnät kalenteriin |
+| 4 | Tarkastelee "Varatut ajat" -osiota | Näkee jo luodut merkinnät (kuka varasi, luontipäivämäärä). Sama lista tulee "Etsi vapaat ajat" -haun jälkeen automaattisesti. |
 
 **Tärkeää:** Jos valmentajan sähköposti on asetettu, järjestelmä tarkistaa molemmat kalenterit. Ehdotetut ajat ovat vapaat sekä sinulle että valmentajalle (valmentajan tili tulee olla Microsoft 365 -tilillä).
+
+**Varatut ajat:** Merkinnät, jotka on poistettu Microsoft-kalenterista, eivät näy "Varatut ajat" -osiossa – järjestelmä tarkistaa Graph API:sta, mitkä tapahtumat ovat yhä olemassa.
 
 ---
 
@@ -118,6 +122,17 @@ Ennen kuin merkintä luodaan kalenteriin, järjestelmä tarkistaa vielä kerran 
 
 ---
 
+## Merkinnän muokkaus
+
+Ennen merkinnän luontia käyttäjä voi muokata yksittäisiä ehdotuksia (kynä-ikoni). Muokkausmodaalissa voi muuttaa:
+- Otsikko
+- Asiakas
+- **Lisätieto** (valinnainen tekstikenttä)
+- Päivämäärä
+- Alkaa / Päättyy
+
+---
+
 ## Yhteenveto
 
-Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. Kaikki tämä tapahtuu yhdellä "Etsi vapaat ajat" -napin painalluksella.
+Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. Kaikki tämä tapahtuu yhdellä "Etsi vapaat ajat" -napin painalluksella. **"Etsi varatut ajat"** -nappi näyttää jo luodut merkinnät ilman vapaiden aikojen hakua.
