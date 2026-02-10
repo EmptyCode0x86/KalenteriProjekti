@@ -1,0 +1,2 @@
+# KalenteriProjekti
+Kalenteri Automaatio
