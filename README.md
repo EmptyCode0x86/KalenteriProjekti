@@ -129,7 +129,7 @@ Ennen merkinnän luontia käyttäjä voi muokata yksittäisiä ehdotuksia (kynä
 
 ---
 
-## Älykäs Uudelleenjärjestely (Smart Rescheduling) ( KESKENERÄINEN OMINAISUUS )
+## Älykäs Uudelleenjärjestely (Smart Rescheduling) ( KESKEN )
 
 Kun kalenteri on täysi, "Älykäs haku" voi auttaa löytämään tilaa siirtämällä vähemmän tärkeitä omia varauksia.
 
@@ -188,13 +188,23 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 
 | Suoja | Mitä vaikuttaa |
 |-------|----------------|
-| **Rate Limiting** | Rajoittaa pyyntömäärää (100 req / 10 s per käyttäjä tai IP). Estää DoS-hyökkäyksiä ja API:n kuormituksen. |
-| **JWT-autentikaatio** | Varmistaa, että vain kirjautuneet käyttäjät pääsevät API-endpointeihin. Supabase-token validoidaan jokaisella suojatulla pyynnöllä. |
+| **Rate Limiting** | 100 req / 10 s per käyttäjä tai IP. OAuth callback: 10 req / min per IP (brute-force -suojaus). Estää DoS-hyökkäyksiä. |
+| **JWT-autentikaatio** | Varmistaa, että vain kirjautuneet käyttäjät pääsevät API-endpointeihin. ValidateIssuer/Audience/Lifetime/SigningKey = true, ClockSkew 2 min, ValidAlgorithms = HS256 (estää alg:none). JWT-eventit loggaavat vain devissä. |
 | **CORS** | Sallii pyynnöt vain määritellyistä alkuperistä (dev: localhost, prod: whitelist). Estää muut sivustot käyttämästä API:asi. |
-| **Security Headers** | CSP, X-Frame-Options, X-Content-Type-Options, HSTS jne. Vähentävät XSS-, clickjacking- ja MIME-sniffing -riskejä. |
+| **Security Headers** | Backend: CSP, HSTS jne. Frontend: Middleware lisää CSP (connect-src Supabase + API), X-Content-Type-Options, X-Frame-Options. Vähentävät XSS-, clickjacking- ja MIME-sniffing -riskejä. |
 | **HTTPS (tuotanto)** | Pakottaa salatun yhteyden tuotannossa. Suojaa datan man-in-the-middle -hyökkäyksiltä. |
 | **OAuth state + CSRF** | Microsoft-kirjautumisen `state`-parametri on HMAC-allekirjoitettu. Estää väärennetyt OAuth-callbackit. |
 | **Token-salaus** | Microsoft Graph -tokenit salataan (AES-256) ennen tietokantaan tallennusta. Suojaa, vaikka tietokanta vuotaisi. |
 | **Input Validation** | FluentValidation tarkistaa syötteet (esim. preferenssit) ennen käsittelyä. Estää virheellisen tai haitallisen datan. |
 | **PII-maskaus** | Sähköposteja ei kirjoiteta logeihin selkokielisinä (maskataan tyyliin `m***@firma.fi`). Vähentää henkilötietojen vuotamista lokista. |
-| **API-avainten suojaus** | Arkaluonteiset avaimet (JWT Secret, Microsoft Graph ClientSecret) säilytetään backendin `.env`-tiedostossa, eivät koskaan repossa tai frontendissa. Frontend saa vain Supabasen anon key (suunniteltu julkiseksi; RLS rajaa oikeudet). service_role -avainta ei käytetä client-puolella. Graph-tokenit salataan tietokantaan. |
+| **API-avainten suojaus** | Arkaluonteiset avaimet (JWT Secret, Microsoft Graph ClientSecret, ClientId, TenantId, Supabase Url) säilytetään backendin `.env`-tiedostossa, eivät koskaan repossa tai frontendissa. Käytä `.env.example`-pohjaa. Frontend saa vain Supabasen anon key (suunniteltu julkiseksi; RLS rajaa oikeudet). `service_role` -avainta ei käytetä client-puolella. Graph-tokenit salataan tietokantaan (Data Protection API). |
+| **Microsoft OAuth TenantId** | Käytä `TenantId=common` henkilökohtaisten Microsoft-tilien (outlook.com, hotmail.com) tukemiseksi. Org-spesifiselle käytölle käytä Azure AD:n tenant-ID:tä. |
+| **Lokituksen turvallisuus** | OAuth- ja Graph API -virhevastauksia ei logiteta (estää token- ja PII-vuodon). Logitetaan vain StatusCode ja ReasonPhrase. |
+| **Frontend build-tarkistus** | Next.js build epäonnistuu, jos `NEXT_PUBLIC_`-avaimissa on `SERVICE_ROLE` tai `SECRET_KEY`. Estää vahingollisen paljastuksen build-vaiheessa. |
+| **postMessage origin-validoinnit** | Microsoft OAuth -popup lähettää `msauth-callback`-viestin frontendille. Frontend tarkistaa `event.origin` ja hyväksyy vain backendin OAuth-callback-origin (`NEXT_PUBLIC_API_URL`). Estää, että vihamielinen sivusto lähettäisi vääriä viestejä. Backend käyttää `Cors:AllowedOrigins` -konfiguraatiota postMessage `targetOrigin`-parametrina (ei wildcardia `*`). |
+| **Tuotantologitus (frontend)** | `console.error` rajoitettu kehitysympäristöön (`NODE_ENV === 'development'`). Tuotannossa virheitä ei logata selaimen konsoliin – vähentää token- tai PII-vuodon riskiä, jos virheolio sisältäisi arkaluontoisia tietoja. |
+| **Dependency Security (Supply Chain)** | Backend: `dotnet list package --vulnerable`. Frontend: `npm audit`. Suositus: Dependabot/Renovate automaattisille PR:ille, säännöllinen patchaus (viikoittain), kriittisten CVE:tien korjaus 48 h. Supply chain -riskit (vahingoittuneet paketit, typosquatting) ovat merkittävämpiä kuin suorat injektiot. |
+
+---
+
+**Dokumentin versio:** 4.6.0 | **Päivitetty:** 2026-02-11 (tietoturvapäivitykset: JWT-hardening, OAuth rate limit, Next.js CSP, Dependency Security)
