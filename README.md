@@ -208,3 +208,15 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 ---
 
 **Dokumentin versio:** 4.6.0 | **Päivitetty:** 2026-02-11 (tietoturvapäivitykset: JWT-hardening, OAuth rate limit, Next.js CSP, Dependency Security)
+
+## Korjaukset
+
+**Kalenteri merkinnät näkyviin 6kk kalenteri ajat kohta**
+**Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnitelu yhdistä. Omat tekstiboxit / Save / load asetukset**
+**Sijainnin tunnistus ominaisuus. Kalenteriin varattujen merkintöjen sijainnin huomiominen, Jos helsinki niin ei ehdota siihen mitään. (Varoituksen kanssa voi ehdottaa suunnitelua)**
+**Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta järjestys )**
+**Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
+**Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
+**Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
+**Muokkaa otsikko vaihtaa labelit oikein. Esim Jos vaihtaa otsikon suunnittelusta > Teams vaihtuu myös labelit ja värit oikein**
+
