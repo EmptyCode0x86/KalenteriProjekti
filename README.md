@@ -222,6 +222,6 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 
 ## Suoritetut Korjaukset
 
-1. **Kalenteri merkinnät näkyviin 6kk kalenteri ajat kohta**
+1. **Kalenteri merkinnät näkyviin 6kk ajalta**
 2. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
 3. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
