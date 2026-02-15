@@ -20,10 +20,10 @@ Algoritmi toimii kuin palapeli: se pilkkoo projektin tarvitsemiin aikoihin, etsi
 
 | Vaihe | Mitä käyttäjä tekee | Mitä järjestelmä tekee taustalla |
 |-------|---------------------|----------------------------------|
-| 1 | Luo projektin (nimi, valmennuspäivä, tyyppi) | Laskee, montako kalenterimerkintää tarvitaan ja millaisia (suunnittelu, Teams, valmistelu) |
+| 1 | Luo projektin (nimi, **hakuväli**, tyyppi) | Laskee tarvittavan kaavan (esim. Suunnittelu + Teams + Valmistelu) ja toistaa sitä koko valitulle hakuvälille (esim. 1 kk). |
 | 2 | Klikkaa "Etsi vapaat ajat" | Hakee sinun ja valmentajan kalenterit, etsii vapaat ajat, luo ehdotukset |
 | 2b | Klikkaa "Etsi varatut ajat" | Hakee sovelluksen kautta luodut merkinnät aikavälillä (tänään → valmennuspäivä). Näyttää vain kalenterissa olevat (poistetut ei näy). |
-| 3 | Valitsee ehdotukset ja klikkaa "Luo merkinnät" | Tarkistaa vielä kerran, että ajat ovat vapaat, luo merkinnät kalenteriin |
+| 3 | Suodattaa ja valitsee ehdotukset | Voi rajata näkymää **Asiakas**- ja **Päivämäärä**-valikoilla (tekstihaku). Lista rullautuu jos kortteja on yli 10. "Luo merkinnät" luo vain näytetyt kortit. |
 | 4 | Tarkastelee "Varatut ajat" -osiota | Näkee jo luodut merkinnät (kuka varasi, luontipäivämäärä). Sama lista tulee "Etsi vapaat ajat" -haun jälkeen automaattisesti. |
 
 **Tärkeää:** Jos valmentajan sähköposti on asetettu, järjestelmä tarkistaa molemmat kalenterit. Ehdotetut ajat ovat vapaat sekä sinulle että valmentajalle (valmentajan tili tulee olla Microsoft 365 -tilillä).
@@ -43,6 +43,22 @@ Kun valitset projektityypin, järjestelmä laskee automaattisesti tarvittavat ai
 | **Extended** | 3 × 3 h | 1 × 2 h | 3 × 3 h | 20 h |
 
 Teams-palaveri voi sisältää valmentajan sähköpostin, jos se on asetettu preferensseissä.
+
+---
+
+## 🔍 Suodatus ja Selaus (UUSI v5.2)
+
+Sovelluksessa on edistyneet työkalut suurten ehdotusmäärien (esim. 50+ korttia) hallintaan:
+
+1.  **MultiSelect-suodattimet:**
+    -   **Asiakas:** Valitse listasta yksi tai useampi asiakas.
+    -   **Päivämäärä:** Valitse tarkat päivät.
+    -   **Tekstihaku:** Voit kirjoittaa valikon sisään (esim. "Fir") löytääksesi nopeasti oikean vaihtoehdon.
+2.  **Scrollaus:**
+    -   Jos lista on pitkä (>10 korttia), se rullautuu pystysuunnassa (max korkeus n. 600px).
+    -   Painikkeet ja otsikot pysyvät aina näkyvissä.
+3.  **Luo merkinnät -logiikka:**
+    -   Painike luo merkinnät **vain suodatetusta ja näkyvästä listasta**. Tämä mahdollistaa esim. vain tietyn asiakkaan aikojen massaluonnin.
 
 ---
 
@@ -81,25 +97,27 @@ Tämä on logiikan sydän. Järjestelmä käy läpi päivät ja etsii sopivia ai
 
 ### Vaihe 3: Ehdotusten luominen (`GenerateProposals`)
 
-Lopuksi tarpeet ja vapaat ajat yhdistetään.
+Lopuksi tarpeet ja vapaat ajat yhdistetään. **Tämä vaihe on muuttunut versiossa 5.1:**
 
-1. **Prioriteettijärjestys**  
-   Välilyönnit täytetään tärkeysjärjestyksessä: ensin suunnittelu, sitten Teams, sitten valmistelu.
+1.  **Toistuva kaava (Loop):**
+    Järjestelmä ei lopeta yhden kierroksen jälkeen, vaan **toistaa projektin kaavaa** (Suunnittelu → Teams → Valmistelu) niin kauan kuin vapaata tilaa riittää hakuvälillä.
 
-2. **Sopivan ajan valinta**  
-   Jokaiselle tarvittavalle välille etsitään vapaa aika, joka:
-   - On riittävän pitkä (esim. 3 h)
-   - Ei ole jo käytetty toiseen ehdotukseen
-   - Ei riko minimiväliä edellisen ehdotuksen jälkeen
-   - Suositaan ensin "Preferred"-aikoja
+2.  **Settien luonti:**
+    -   **Setti 1:** Ensimmäinen täysi kierros on oletuksena valittu (`IsAccepted = true`).
+    -   **Setti 2, 3, jne.:** Seuraavat kierrokset luodaan vaihtoehdoiksi, joista käyttäjä voi valita lisää aikoja.
 
-3. **Onnistunut haku**  
-   Kun sopiva aika löytyy, luodaan ehdotus ja annetaan luotettavuus:
-   - **1.0** = täydellinen osuma (suositeltu aika)
-   - **0.8** = hyvä aika, ei suositeltu ikkuna
+3.  **Prioriteettijärjestys:**
+    Kaavan sisällä välilyönnit täytetään tärkeysjärjestyksessä: ensin suunnittelu, sitten Teams, sitten valmistelu.
 
-4. **Varatilanne (fallback)**  
-   Jos 3 h:n tarkkaa aikaa ei löydy, valitaan lyhyempi vapaa aika ja näytetään varoitus: *"Ei täydellistä aikaa, lyhennetty"* (luotettavuus 0.5).
+4.  **Sopivan ajan valinta:**
+    Jokaiselle tarvittavalle välille etsitään vapaa aika, joka:
+    -   On riittävän pitkä (esim. 3 h)
+    -   Ei ole jo käytetty toiseen ehdotukseen
+    -   Ei riko minimiväliä edellisen ehdotuksen jälkeen
+    -   Suositaan ensin "Preferred"-aikoja
+
+5.  **Varatilanne (fallback) - Vain 1. setti:**
+    Jos ensimmäisessä setissä ei löydy täydellistä 3 h aikaa, järjestelmä yrittää lyhentää sitä (varoitus: *"Ei täydellistä aikaa, lyhennetty"*). Seuraavissa seteissä (2+) ei käytetä fallbackia, vaan jos täydellistä aikaa ei löydy, settiä ei jatketa.
 
 ---
 
@@ -207,9 +225,8 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 
 ---
 
-**Dokumentin versio:** 4.6.0 | **Päivitetty:** 2026-02-11 (tietoturvapäivitykset: JWT-hardening, OAuth rate limit, Next.js CSP, Dependency Security)
 
-## Korjaukset
+## Korjattavaa
 
 
 1. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnitelu yhdistä. Omat tekstiboxit / Save / load asetukset**
@@ -220,8 +237,13 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 
 ---
 
-## Suoritetut Korjaukset
+## Suoritetut Korjaukset | 15/02/26
 
 1. **Kalenteri merkinnät näkyviin 6kk ajalta**
 2. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
 3. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
+
+---
+
+**Dokumentin versio:** 5.2.0 | **Päivitetty:** 2026-02-15 (MultiSelect Filtering with Search & Scrollable UI)
+
