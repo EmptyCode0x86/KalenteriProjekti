@@ -46,19 +46,25 @@ Teams-palaveri voi sisältää valmentajan sähköpostin, jos se on asetettu pre
 
 ---
 
-## 🔍 Suodatus ja Selaus (UUSI v5.2)
+## 🔍 Suodatus, Haku ja Massapoisto (UUSI v5.3)
 
-Sovelluksessa on edistyneet työkalut suurten ehdotusmäärien (esim. 50+ korttia) hallintaan:
+Sovelluksessa on edistyneet työkalut suurten ehdotusmäärien hallintaan:
 
-1.  **MultiSelect-suodattimet:**
-    -   **Asiakas:** Valitse listasta yksi tai useampi asiakas.
-    -   **Päivämäärä:** Valitse tarkat päivät.
-    -   **Tekstihaku:** Voit kirjoittaa valikon sisään (esim. "Fir") löytääksesi nopeasti oikean vaihtoehdon.
-2.  **Scrollaus:**
-    -   Jos lista on pitkä (>10 korttia), se rullautuu pystysuunnassa (max korkeus n. 600px).
-    -   Painikkeet ja otsikot pysyvät aina näkyvissä.
-3.  **Luo merkinnät -logiikka:**
-    -   Painike luo merkinnät **vain suodatetusta ja näkyvästä listasta**. Tämä mahdollistaa esim. vain tietyn asiakkaan aikojen massaluonnin.
+1.  **Vapaatekstihaku (Älykäs haku):**
+    -   Kirjoita hakukenttään mitä vain: Asiakkaan nimi, viikonpäivä ("Maanantai"), päivämäärä ("16.2.") tai lisätieto.
+    -   Lista päivittyy reaaliajassa.
+
+2.  **Suodattimet:**
+    -   **Päivämäärä-valikko:** Valitse tarkat päivät listasta.
+    -   **Tyyppirajaus (Checkboxit):** Voit piilottaa "Suunnittelu" tai "Teams" -kortit näkyvistä.
+
+3.  **Massapoisto (Delete Visible):**
+    -   Kun olet rajannut listan haulla (esim. kaikki "Maanantait"), hakupalkin yhteyteen ilmestyy punainen **"Poista näkyvät"** -painike.
+    -   Tällä voit poistaa kerralla kaikki ruudulla näkyvät ehdotukset.
+
+4.  **Luo merkinnät -logiikka:**
+    -   "Luo merkinnät" -painike luo kalenteriin **vain näkyvissä olevat** kortit.
+    -   Voit siis ensin hakea "Firma Oy", tarkistaa että listassa on vain heidän aikansa, ja painaa "Luo merkinnät".
 
 ---
 
@@ -232,16 +238,15 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 1. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnitelu yhdistä. Omat tekstiboxit / Save / load asetukset**
 2. **Sijainnin tunnistus ominaisuus. Kalenteriin varattujen merkintöjen sijainnin huomiominen, Jos helsinki niin ei ehdota siihen mitään. (Varoituksen kanssa voi ehdottaa suunnitelua)**
 3. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta järjestys )**
-4. **Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
-5. **Muokkaa otsikko vaihtaa labelit oikein. Esim Jos vaihtaa otsikon suunnittelusta > Teams vaihtuu myös labelit ja värit oikein**
 
 ---
 
-## Suoritetut Korjaukset | 15/02/26
+## Suoritetut Korjaukset
 
 1. **Kalenteri merkinnät näkyviin 6kk ajalta**
-2. **Suunnitelu aikataulut ei hakenut 08 eteenpäin**
+2. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
 3. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
+4. **Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
 
 ---
 
