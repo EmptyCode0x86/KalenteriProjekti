@@ -275,8 +275,22 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 3. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
 4. **Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
 5. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnittelua. Omat tekstiboxit / Save / Load asetukset.**
+6. **Slot Remainder Fix:** Jäännösajan palautus käyttöön.
+7. **Varatut ajat -osio (v5.5.0):** Täysi hallinta varatuille ajoille:
+    - **Haku:** Vapaatekstihaku (nimi, asiakas, pvm)
+    - **Suodatus:** Checkboxit Suunnittelu/Teams ja Pvm-valitsin (MultiSelect)
+    - **Poisto:** Yksittäinen poisto roskakorista ja massapoisto ("Poista näkyvät")
+    - **Graph-integraatio:** Poisto poistaa merkinnän myös Microsoft-kalenterista
+
+8. **Päällekkäisyyskorjaus (v5.5.1):**
+    - **Aikavyöhyke:** Graph API palauttaa joskus UTC-aikoja (`Z`-pääte) huolimatta pyynnöstä. Järjestelmä tunnistaa nämä nyt ja muuntaa oikeaan Helsinki-aikaan.
+    - **Vapaat ajat:** Kalenterimerkinnät, joiden tila on "Free", eivät enää estä ajanvarausta.
+
+9. **Päällekkäisten aikojen ehdotus – sivutus ja hakuväli (v5.5.2):**
+    - **Sivutus:** Microsoft Graph `calendarView` palauttaa tapahtumat sivuittain. Järjestelmä seuraa nyt `@odata.nextLink`-linkkiä ja hakee kaikki sivut (max 999 tapahtumaa/sivu). Aiemmin vain ensimmäinen sivu haettiin, jolloin osa varauksista jäi näkymättä ja syntyi päällekkäisiä ehdotuksia.
+    - **Hakutapa:** Hakuvälin viimeinen päivä jäi aiemmin pois. Graph API:lle välitetään nyt `searchEnd.Date.AddDays(1)`, jotta viimeinen päivä tulee mukaan.
 
 ---
 
-**Dokumentin versio:** 5.2.1 | **Päivitetty:** 2026-02-15 (Custom Scope & Presets UI)
+**Dokumentin versio:** 5.5.2 | **Päivitetty:** 2026-02-15 (Päällekkäisten aikojen korjaus)
 
