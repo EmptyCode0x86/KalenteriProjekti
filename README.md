@@ -211,12 +211,12 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 
 ## Korjaukset
 
-1. **Kalenteri merkinnät näkyviin 6kk kalenteri ajat kohta**
+[ SUORITETTU ] 1. **Kalenteri merkinnät näkyviin 6kk kalenteri ajat kohta** [ SUORITETTU ]
 2. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnitelu yhdistä. Omat tekstiboxit / Save / load asetukset**
 3. **Sijainnin tunnistus ominaisuus. Kalenteriin varattujen merkintöjen sijainnin huomiominen, Jos helsinki niin ei ehdota siihen mitään. (Varoituksen kanssa voi ehdottaa suunnitelua)**
 4. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta järjestys )**
-5. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
+[ SUORITETTU ] 5. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar** [ SUORITETTU ]
 6. **Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
-7. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
+[ SUORITETTU ] 7. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain** [ SUORITETTU ]
 8. **Muokkaa otsikko vaihtaa labelit oikein. Esim Jos vaihtaa otsikon suunnittelusta > Teams vaihtuu myös labelit ja värit oikein**
 
