@@ -46,6 +46,35 @@ Teams-palaveri voi sisältää valmentajan sähköpostin, jos se on asetettu pre
 
 ---
 
+---
+
+## 🛠️ Projektin laajuus & Presetit (UUSI v5.4)
+
+Käyttäjä voi nyt vapaasti määrittää projektin laajuuden ns. **Custom Scope** -näkymässä, ilman lukittuja "Standard/Express" -paketteja.
+
+### 1. Käyttöliittymä
+*   **Korttien asettelu:** Suunnittelu ja Teams ovat omia, selkeitä korttejaan, pinottuina päällekkäin.
+*   **Syötteet:** Molemmille voi antaa **määrän** (kpl) ja **keston** (h).
+    *   *Esim.* Suunnittelu: `4 kpl × 3 h`
+    *   *Esim.* Teams: `1 kpl × 1 h`
+
+### 2. Presettien hallinta
+Usein toistuvat asetukset voi tallentaa **presetiksi** (esim. "Iso Asiakas"), jolloin ne voi ladata yhdellä klikkauksella.
+
+#### Tallennus (Save Preset)
+1.  Säädä arvot haluamallasi tavalla.
+2.  Klikkaa **"Tallenna asetuksena"**.
+3.  Avautuu modaali, joka näyttää **yhteenvedon** tallennettavista arvoista (varmistus).
+4.  Kirjoita nimi ja tallenna.
+
+#### Poisto (Delete Preset)
+1.  Valitse poistettava preset listasta.
+2.  Paina punaista roskakorikuvaketta.
+3.  Avautuu **varmistusmodaali** (punainen teema), joka kysyy oletko varma.
+4.  Poisto palauttaa näkymän oletusarvoihin (Standard).
+
+---
+
 ## 🔍 Suodatus, Haku ja Massapoisto (UUSI v5.3)
 
 Sovelluksessa on edistyneet työkalut suurten ehdotusmäärien hallintaan:
@@ -234,10 +263,8 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 
 ## Korjattavaa
 
-
-1. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnitelu yhdistä. Omat tekstiboxit / Save / load asetukset**
-2. **Sijainnin tunnistus ominaisuus. Kalenteriin varattujen merkintöjen sijainnin huomiominen, Jos helsinki niin ei ehdota siihen mitään. (Varoituksen kanssa voi ehdottaa suunnitelua)**
-3. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta järjestys )**
+1. **Sijainnin tunnistus ominaisuus. Kalenteriin varattujen merkintöjen sijainnin huomiominen, Jos helsinki niin ei ehdota siihen mitään. (Varoituksen kanssa voi ehdottaa suunnitelua)**
+2. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta järjestys )**
 
 ---
 
@@ -247,8 +274,9 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 2. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
 3. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
 4. **Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
+5. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnittelua. Omat tekstiboxit / Save / Load asetukset.**
 
 ---
 
-**Dokumentin versio:** 5.2.0 | **Päivitetty:** 2026-02-15 (MultiSelect Filtering with Search & Scrollable UI)
+**Dokumentin versio:** 5.2.1 | **Päivitetty:** 2026-02-15 (Custom Scope & Presets UI)
 
