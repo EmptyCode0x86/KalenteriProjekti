@@ -261,7 +261,7 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 ---
 
 
-## Korjattavaa
+## Korjattavaa / lisättävät ominaisuudet
 
 1. **Sijainnin tunnistus ominaisuus. Kalenteriin varattujen merkintöjen sijainnin huomiominen, Jos helsinki niin ei ehdota siihen mitään. (Varoituksen kanssa voi ehdottaa suunnitelua)**
 2. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta järjestys )**
