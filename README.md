@@ -315,7 +315,21 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
     - **Sijainnin tunnistus (Location Awareness):** Jos kalenterissa on merkintä, jonka sijaintina on "Helsinki", sovellus estää Teams-palaverit kyseiseltä päivältä (oletetaan lähityöpäiväksi/matkustukseksi). Suunnitteluajoille annetaan varoitus.
     - **Täyttöasteen valinta:** Käyttöliittymässä checkbox **"Maksimoi täyttöaste"** (ent. "Toista kaavaa"). Valinta ohjaa, täytetäänkö päivät tiiviisti (Tehopäivät) vai jaetaanko työkuorma tasaisesti viikoille (Tasainen/Stressitön).
 
+13. **Muokkausmodaalin kentät – täysi synkronointi (v5.6.3):**
+    - **Lisätiedot:** Kentän sisältö päivittyy nyt Microsoft-kalenterin body-kenttään, tietokantaan (CalendarEvent.Description) ja frontend-laatikkoon (kalenteri-/korttinäkymä). Aiemmin tallennus ei välittynyt API:lle eikä Graphiin.
+    - **Asiakas:** Asiakas-kentän muokkaus päivittyy tietokantaan (CalendarEvent.ClientName), Graphin bodyyn ("Asiakas: ...") ja frontend-laatikkoon. Optimistic update + uudelleenlataus.
+    - **Otsikko:** Asiakasnimi poistettu otsikosta – näkyy nyt vain "Suunnittelu (1/4)" tms.; asiakas omalla rivillään "Asiakas: ...".
+
+14. **Sijainti-kenttä muokkausmodaaliin (v5.6.3):**
+    - **Modaali:** Uusi kenttä "Sijainti" (MapPin-ikoni). Synkronoituu Microsoft Graphin `location.displayName` -kenttään ja tietokantaan (CalendarEvent.Location).
+    - **Laatikot:** Sijainti näytetään ehdotus- ja varattujen slottien laatikossa vain jos kenttä ei ole tyhjä. Sijainnin tunnistus (Location Awareness, Helsinki-päivä) toimii edelleen samalla tavalla.
+
+15. **Matkustuspäivävaroitus laatikon sisällä (v5.6.3):**
+    - **Ehdotusslotti:** Kun ehdotus on matkustuspäivällä (sijainti Helsinki), laatikon sisällä näkyy varoituskolmio ja teksti "Mahdollinen matkustuspäivä" (amber-tyyli).
+    - **Varattu slotti:** Kun merkinnän sijainti on "Helsinki", sama varoitus laatikon sisällä.
+    - **Korttinäkymä:** Kortilla lyhyt teksti "Mahdollinen matkustuspäivä" varoituskolmion kanssa (täysi viesti tooltipissa).
+
 ---
 
-**Dokumentin versio:** 5.6.2 | **Päivitetty:** 2026-02-17 (dokumentti ajantasalle)
+**Dokumentin versio:** 5.6.3 | **Päivitetty:** 2026-02-18 (korjaukset 13–15 dokumentoitu)
 
