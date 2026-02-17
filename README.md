@@ -23,7 +23,7 @@ Algoritmi toimii kuin palapeli: se pilkkoo projektin tarvitsemiin aikoihin, etsi
 | 1 | Luo projektin (nimi, **hakuväli**, tyyppi) | Laskee tarvittavan kaavan (esim. Suunnittelu + Teams + Valmistelu) ja toistaa sitä koko valitulle hakuvälille (esim. 1 kk). |
 | 2 | Klikkaa "Etsi vapaat ajat" | Hakee sinun ja valmentajan kalenterit, etsii vapaat ajat, luo ehdotukset |
 | 2b | Klikkaa "Etsi varatut ajat" | Hakee sovelluksen kautta luodut merkinnät aikavälillä (tänään → valmennuspäivä). Näyttää vain kalenterissa olevat (poistetut ei näy). |
-| 3 | Suodattaa ja valitsee ehdotukset | Voi rajata näkymää **Asiakas**- ja **Päivämäärä**-valikoilla (tekstihaku). Lista rullautuu jos kortteja on yli 10. "Luo merkinnät" luo vain näytetyt kortit. |
+| 3 | Suodattaa ja valitsee ehdotukset | Voit vaihtaa näkymää: **Kortti**, **Taulukko** tai **Kalenteri** (ViewSwitcher). Voi rajata listaa **Asiakas**- ja **Päivämäärä**-valikoilla (tekstihaku). "Luo merkinnät" luo vain näytetyt kortit. |
 | 4 | Tarkastelee "Varatut ajat" -osiota | Näkee jo luodut merkinnät (kuka varasi, luontipäivämäärä). Sama lista tulee "Etsi vapaat ajat" -haun jälkeen automaattisesti. |
 
 **Tärkeää:** Jos valmentajan sähköposti on asetettu, järjestelmä tarkistaa molemmat kalenterit. Ehdotetut ajat ovat vapaat sekä sinulle että valmentajalle (valmentajan tili tulee olla Microsoft 365 -tilillä).
@@ -46,9 +46,7 @@ Teams-palaveri voi sisältää valmentajan sähköpostin, jos se on asetettu pre
 
 ---
 
----
-
-## 🛠️ Projektin laajuus & Presetit (UUSI v5.4)
+## 🛠️ Projektin laajuus & Presetit (v5.4)
 
 Käyttäjä voi nyt vapaasti määrittää projektin laajuuden ns. **Custom Scope** -näkymässä, ilman lukittuja "Standard/Express" -paketteja.
 
@@ -75,7 +73,7 @@ Usein toistuvat asetukset voi tallentaa **presetiksi** (esim. "Iso Asiakas"), jo
 
 ---
 
-## 🔍 Suodatus, Haku ja Massapoisto (UUSI v5.3)
+## 🔍 Suodatus, Haku ja Massapoisto (v5.3)
 
 Sovelluksessa on edistyneet työkalut suurten ehdotusmäärien hallintaan:
 
@@ -119,7 +117,7 @@ Tämä on logiikan sydän. Järjestelmä käy läpi päivät ja etsii sopivia ai
    Työajan ulkopuolelle ei ehdoteta aikoja (esim. 8:00–16:00).
 
 3. **Varaukset**  
-   Haetaan kaikki varaukset kyseiselle päivälle – sekä sinun että valmentajan kalenterista (jos valmentaja on määritelty).
+   Haetaan kaikki varaukset kyseiselle päivälle – sekä sinun että valmentajan kalenterista (jos valmentaja on määritelty). Varauksen **sijainti** (location) luetaan; jos päivällä on merkintä, jonka sijainti on "Helsinki", kyseinen päivä käsitellään erityisesti (Location Awareness, v5.6.2).
 
 4. **Aukkojen etsintä**  
    Algoritmi etenee aikajanalla aina seuraavaan varaukseen asti:
@@ -132,14 +130,31 @@ Tämä on logiikan sydän. Järjestelmä käy läpi päivät ja etsii sopivia ai
 
 ### Vaihe 3: Ehdotusten luominen (`GenerateProposals`)
 
-Lopuksi tarpeet ja vapaat ajat yhdistetään. **Tämä vaihe on muuttunut versiossa 5.1:**
+Lopuksi tarpeet ja vapaat ajat yhdistetään. **Tämä vaihe on päivitetty versiossa 5.6:**
 
-1.  **Toistuva kaava (Loop):**
-    Järjestelmä ei lopeta yhden kierroksen jälkeen, vaan **toistaa projektin kaavaa** (Suunnittelu → Teams → Valmistelu) niin kauan kuin vapaata tilaa riittää hakuvälillä.
+Järjestelmässä on kaksi tapaa täyttää kalenteri, riippuen **"Maksimoi täyttöaste"** -valinnasta (ent. "Toista kaavaa"):
 
-2.  **Settien luonti:**
-    -   **Setti 1:** Ensimmäinen täysi kierros on oletuksena valittu (`IsAccepted = true`).
-    -   **Setti 2, 3, jne.:** Seuraavat kierrokset luodaan vaihtoehdoiksi, joista käyttäjä voi valita lisää aikoja.
+#### A. "Maksimoi täyttöaste" PÄÄLLÄ (Maximize Mode)
+*Oletus: täyttää kalenterin tiiviisti (Tehopäivät).*
+1.  **Logiikka:** Järjestelmä toistaa projektin kaavaa (Suunnittelu + Teams + Valmistelu) niin monta kertaa kuin hakuvälille mahtuu.
+2.  **Käyttötapaus:** "Haluan saada työn tehdyksi mahdollisimman nopeasti. Anna kaikki ajat, jotka sopivat."
+3.  **Valinta (Acceptance):**
+    -   **Kaikki setit:** Järjestelmä ehdottaa **kaikkia** löydettyjä aikoja listassa ("kirkkaina").
+    -   **Käyttäjän hallinta:** Koska ehdotuksia voi tulla paljon (esim. 10 projektia), voit helposti karsia listaa:
+        -   Poista yksittäisiä kortteja roskakorista.
+        -   Käytä "Poista näkyvät" -toimintoa, jos haluat poistaa esim. kaikki tietyn päivän ajat kerralla.
+
+#### B. "Maksimoi täyttöaste" POIS (Weekly Quota Mode)
+*Tasainen/Stressitön: viikkokiintiö (Ma–Su).*
+1.  **Logiikka:** Järjestelmä jakaa hakuvälin **kalenteriviikkoihin (Ma-Su)**.
+2.  **Tavoite:** Se yrittää löytää *tasan* määritellyn määrän (esim. 4 suunnittelua) **joka viikolle**.
+3.  **Käyttötapaus:** "Haluan tehdä tätä projektia tasaisesti 4 tuntia joka viikko seuraavan kuukauden ajan."
+4.  **Valinta (Acceptance):**
+    -   **Kaikki setit:** Koska pyysit nimenomaan viikottaista toistoa, järjestelmä valitsee oletuksena *kaikki* löydetyt ajat (yksi setti per viikko).
+
+---
+
+#### Prioriteettijärjestys (molemmat moodit):
 
 3.  **Prioriteettijärjestys:**
     Kaavan sisällä välilyönnit täytetään tärkeysjärjestyksessä: ensin suunnittelu, sitten Teams, sitten valmistelu.
@@ -162,6 +177,7 @@ Lopuksi tarpeet ja vapaat ajat yhdistetään. **Tämä vaihe on muuttunut versio
 |------------|---------|
 | **Minimiväli ehdotusten välillä** | Ehdotusten välillä vaaditaan tauko (esim. 30 min). Esim. 08–11 ja 11–14 eivät kelpaa peräkkäin; seuraava voi alkaa vasta 11:30 |
 | **Jäljellä olevan ajan käyttö** | Kun slotista käytetään vain osa (esim. 08–11 osana 08–16), jäljellä oleva aika (11:30–16) lisätään käytettävissä oleviin. Näin samalle päivälle voi tulla useampi ehdotus ilman päällekkäisyyksiä |
+| **Sijainnin tunnistus (v5.6.2)** | Jos kalenterissa on merkintä, jonka sijainti on "Helsinki", järjestelmä tulkitsee päivän mahdollisesti lähityöpäiväksi/matkustukseksi: Teams-palaverit estetään kyseiseltä päivältä, suunnitteluajoille näytetään varoitus |
 
 ---
 
@@ -261,10 +277,9 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 ---
 
 
-## Korjattavaa / lisättävät ominaisuudet
+## Korjattavaa
 
-1. **Sijainnin tunnistus ominaisuus. Kalenteriin varattujen merkintöjen sijainnin huomiominen, Jos helsinki niin ei ehdota siihen mitään. (Varoituksen kanssa voi ehdottaa suunnitelua)**
-2. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta järjestys )**
+1. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta jää oikea järjestys )**
 
 ---
 
@@ -290,7 +305,17 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
     - **Sivutus:** Microsoft Graph `calendarView` palauttaa tapahtumat sivuittain. Järjestelmä seuraa nyt `@odata.nextLink`-linkkiä ja hakee kaikki sivut (max 999 tapahtumaa/sivu). Aiemmin vain ensimmäinen sivu haettiin, jolloin osa varauksista jäi näkymättä ja syntyi päällekkäisiä ehdotuksia.
     - **Hakutapa:** Hakuvälin viimeinen päivä jäi aiemmin pois. Graph API:lle välitetään nyt `searchEnd.Date.AddDays(1)`, jotta viimeinen päivä tulee mukaan.
 
+10. **Layoutin responsiivisuus (v5.5.3):**
+    - **Komponentit:** `SlotList` ja `BookedTimesPanel` on päivitetty reagoimaan paremmin kapeaan tilaan. Korttien sisältö ja hakupalkit rivittyvät pystysuuntaan (stack) tarvittaessa, estäen sisällön leikkautumisen tai ylivuodon.
+
+11. **Ulkoiset kalenterimerkinnät (v5.6.1):**
+    - **Näkyvyys:** Sovellus hakee nyt myös Microsoft Kalenterin omat merkinnät (esim. Outlookissa tehdyt varaukset) ja näyttää ne harmaina palkkeina ("Muu varaus (Outlook)"). Tämä selkeyttää, miksi tietyt ajat eivät ole valittavissa.
+
+12. **Sijainnin tunnistus ja Tehopäivät (v5.6.2):**
+    - **Sijainnin tunnistus (Location Awareness):** Jos kalenterissa on merkintä, jonka sijaintina on "Helsinki", sovellus estää Teams-palaverit kyseiseltä päivältä (oletetaan lähityöpäiväksi/matkustukseksi). Suunnitteluajoille annetaan varoitus.
+    - **Täyttöasteen valinta:** Käyttöliittymässä checkbox **"Maksimoi täyttöaste"** (ent. "Toista kaavaa"). Valinta ohjaa, täytetäänkö päivät tiiviisti (Tehopäivät) vai jaetaanko työkuorma tasaisesti viikoille (Tasainen/Stressitön).
+
 ---
 
-**Dokumentin versio:** 5.5.2 | **Päivitetty:** 2026-02-15 (Päällekkäisten aikojen korjaus)
+**Dokumentin versio:** 5.6.2 | **Päivitetty:** 2026-02-17 (dokumentti ajantasalle)
 
