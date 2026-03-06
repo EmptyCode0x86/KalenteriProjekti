@@ -21,28 +21,65 @@ Algoritmi toimii kuin palapeli: se pilkkoo projektin tarvitsemiin aikoihin, etsi
 | Vaihe | Mitä käyttäjä tekee | Mitä järjestelmä tekee taustalla |
 |-------|---------------------|----------------------------------|
 | 1 | Luo projektin (nimi, **hakuväli**, tyyppi) | Laskee tarvittavan kaavan (esim. Suunnittelu + Teams + Valmistelu) ja toistaa sitä koko valitulle hakuvälille (esim. 1 kk). |
-| 2 | Klikkaa "Etsi vapaat ajat" | Hakee sinun ja valmentajan kalenterit, etsii vapaat ajat, luo ehdotukset |
-| 2b | Klikkaa "Etsi varatut ajat" | Hakee sovelluksen kautta luodut merkinnät aikavälillä (tänään → valmennuspäivä). Näyttää vain kalenterissa olevat (poistetut ei näy). |
+| 2 | Klikkaa "Etsi vapaat ajat" | Hakee sinun kaikista omista kalentereistasi ja valmentajan kalenterit, etsii vapaat ajat, luo ehdotukset |
+| 2b | Klikkaa "Etsi varatut ajat" | Hakee varatut merkinnät aikavälillä (tänään → valmennuspäivä) kaikista omista kalentereista (v5.8.3). Näyttää vain kalenterissa olevat (poistetut ei näy). |
 | 3 | Suodattaa ja valitsee ehdotukset | Voit vaihtaa näkymää: **Kortti**, **Taulukko** tai **Kalenteri** (ViewSwitcher). Voi rajata listaa **Asiakas**- ja **Päivämäärä**-valikoilla (tekstihaku). "Luo merkinnät" luo vain näytetyt kortit. |
 | 4 | Tarkastelee "Varatut ajat" -osiota | Näkee jo luodut merkinnät (kuka varasi, luontipäivämäärä). Sama lista tulee "Etsi vapaat ajat" -haun jälkeen automaattisesti. |
 
+### 4. Valmentajan kalenterin huomioiminen
+- **ICS-integraatio:** Käyttäjä voi syöttää asetuksiin valmentajan julkisen ICS-linkin (esim. Outlookista).
+- **Aktivointi (v5.8.0):** Uusi "Ota valmentajan seuranta käyttöön" -valinta (checkbox). Kun pois päältä, valmentajan kalenteria (Email/ICS) ei haeta eikä huomioida.
+- **Vapaiden aikojen haku:** Järjestelmä hakee valmentajan kalenteritapahtumat annetusta linkistä.
+- **Visualisointi:** Valmentajan menot näkyvät kalenterissa harmaina "Varattu"-palkkeina (ClientName = "Valmentaja").
+- **Esto:** Järjestelmä ei ehdota aikoja, jotka menevät päällekkäin valmentajan menojen kanssa.
+- **Välimuisti:** ICS-kalenterin tiedot tallennetaan välimuistiin (15 min) suorituskyvyn optimoimiseksi.
+
 **Tärkeää:** Jos valmentajan sähköposti on asetettu, järjestelmä tarkistaa molemmat kalenterit. Ehdotetut ajat ovat vapaat sekä sinulle että valmentajalle (valmentajan tili tulee olla Microsoft 365 -tilillä).
 
-**Varatut ajat:** Merkinnät, jotka on poistettu Microsoft-kalenterista, eivät näy "Varatut ajat" -osiossa – järjestelmä tarkistaa Graph API:sta, mitkä tapahtumat ovat yhä olemassa.
+**Varatut ajat:** Merkinnät, jotka on poistettu Microsoft-kalenterista, eivät näy "Varatut ajat" -osiossa – järjestelmä tarkistaa Graph API:sta, mitkä tapahtumat ovat yhä olemassa. Järjestelmä hakee merkinnät kaikista käyttäjän omista kalentereista (v5.8.3).
+
+### 5. Päällekkäisten varauksien näyttö (v5.8.1)
+Kun kalenterissa on sekä omia että toisen (jaetun/ICS) merkintöjä, sama aika voi olla varattuna useampaan kertaan. Kalenterinäkymässä:
+- **Varatut kortit:** Jos oma varaus ja toisen merkintä menevät päällekkäin, varatun kortin **alaosassa** (scrollin ulkopuolella) näkyy painike **"Näytä päällekkäiset (N)"**.
+- **Modaali:** Painikkeen avulla avautuu **OverlapModal**: vasemmalla oma merkintä, oikealla toisen/toisten merkinnät (otsikko, aika, asiakas, lisätiedot, sijainti, varannut).
+- **Ehdotetut slotit:** Ehdotetuissa (Suunnittelu/Teams) korteissa tätä painiketta ei ole – järjestelmä ei ehdota päällekkäisiä aikoja.
+
+### 6. Oma vs toisen merkintä (v5.8.2)
+- **Tunnistus:** Graph API:n `isOrganizer` määrittää, onko merkintä oma vai toisen. Sähköpostivertailu varavaihtoehtona.
+- **Poisto ja muokkaus:** Toisen käyttäjän merkintää ei voi poistaa eikä muokata. Poisto-nappi (X) näkyy vain omille merkinnöille.
+- **Modaali:** Toisen merkinnän klikkaus avaa muokkausmodaalin **vain tarkastelutilassa** – otsikko "Vain tarkastelu", kentät read-only, "Kenellä varaus" -laatikko näyttää varauksen tekijän.
+- **Kortin järjestys:** Asiakas → Lisätiedot → Sijainti → Varannut (alimpana).
+- **Overlap-painike:** Säilyttää oranssit värit kaikissa päällekkäisissä korteissa (myös toisen merkinnän kortilla).
+
+### 7. Ulkoisten merkintöjen tietojen säilytys (v5.8.2)
+Järjestelmä ei muokkaa toisen käyttäjän merkitsemiä tietoja:
+- **Graph body:** API hakee tapahtuman `body`-kentän. Parsitaan Asiakas ja Lisätiedot (tuki: "Asiakas: X", "Suunnittelu: X", "Teams-palaveri: X").
+- **Ei ylikirjoitusta:** Kun body sisältää asiakkaan tai kuvauksen, ne näytetään sellaisenaan. Vain jos body on tyhjä, käytetään oletusta "Muu varaus (Outlook)".
+
+### 8. Asetusten tallennus ja kalenterin päivitys (v5.8.2)
+Kun tallennat asetukset (esim. kytket "Ota kalenterin jakaminen käyttöön" pois ja painat "Tallenna asetukset"), kalenterinäkymä päivittyy automaattisesti. Valmentajan ICS-merkinnät katoavat ilman sivun manuaalista päivitystä. Jos olet aiemmin hakenut vapaat ajat, järjestelmä hakee ne uudestaan uusilla asetuksilla (v5.8.3).
+
+### 9. Kaikki omat kalenterit (v5.8.3)
+Sovellus hakee merkinnät **kaikista käyttäjän omista kalentereista** (oletus + lisäkalenterit kuten Henkilökohtainen, Työ). Jos käyttäjällä on useita kalentereita Outlookissa, kaikki omat merkinnät näkyvät. Jaetut kalenterit (kollegan kalenteri) jätetään pois – ne hoidetaan Valmentajan ICS-asetuksella. Haetaan vain tämän päivän ja tulevaisuuden merkinnät.
+
+### 10. Kalenterinäkymän korttien järjestys (v5.8.3)
+Kalenterinäkymässä varatut ja ehdotetut kortit näytetään nyt **aikajärjestyksessä** – yhdistetty lista, ei enää varatut ensin ja ehdotetut perään. Esim. 08:00-ehdotus näkyy oikeassa paikassa ennen 10:00-varausta.
 
 ---
 
 ## Projektityypit ja tarvittavat ajat
 
-Kun valitset projektityypin, järjestelmä laskee automaattisesti tarvittavat aikavälit:
+Kun valitset projektityypin (presetin), järjestelmä laskee automaattisesti tarvittavat aikavälit:
 
-| Projekti | Suunnittelu | Teams-palaveri | Valmistelu | Yhteensä |
-|----------|-------------|----------------|------------|----------|
-| **Standard** | 2 × 3 h | 1 × 1 h | 2 × 3 h | 13 h |
-| **Express** | 1 × 3 h | 1 × 1 h | 1 × 3 h | 7 h |
-| **Extended** | 3 × 3 h | 1 × 2 h | 3 × 3 h | 20 h |
+| Projekti | Suunnittelu | Teams-palaveri | Yhteensä |
+|----------|-------------|----------------|----------|
+| **Standard** | 4 × 3 h | 1 × 1 h | 13 h |
+| **Express** | 2 × 3 h | 1 × 1 h | 7 h |
+| **Laaja (Extended)** | 6 × 3 h | 1 × 2 h | 20 h |
 
-Teams-palaveri voi sisältää valmentajan sähköpostin, jos se on asetettu preferensseissä.
+> **Huom:** Vanhempi dokumentaatio mainitsee "Valmistelu"-slottityypin. Tämä on yhdistetty Suunnittelu-slotteihin yksinkertaisuuden vuoksi. Järjestelmä käyttää nyt vain kahta tyyppiä: **Suunnittelu** (yksin työskentely) ja **Teams-palaveri** (valmentajan kanssa).
+
+Teams-palaveri voi sisältää valmentajan sähköpostin kutsuttuna, jos se on asetettu preferensseissä.
 
 ---
 
@@ -102,9 +139,9 @@ Aikataulutusmoottori toimii kolmessa vaiheessa. Tämä on se osa, joka tekee "ma
 ### Vaihe 1: Tarpeen laskenta (`CalculateRequiredSlots`)
 
 Ensin järjestelmä määrittää, mitä projekti vaatii:
-- Montako slotia kustakin tyypistä (suunnittelu, Teams, valmistelu)
-- Kuinka pitkiä ne ovat (esim. 3 h)
-- Missä järjestyksessä ne tulevat (prioriteetti: suunnittelu ensin, sitten Teams, sitten valmistelu)
+- Montako slotia kustakin tyypistä (**Suunnittelu** ja **Teams-palaveri**)
+- Kuinka pitkiä ne ovat (esim. 3 h suunnittelulle, 1 h Teamsille)
+- Missä järjestyksessä ne tulevat (prioriteetti: suunnittelu ensin, sitten Teams)
 
 ### Vaihe 2: Vapaiden aikojen etsintä (`FindAvailableSlots`)
 
@@ -117,7 +154,7 @@ Tämä on logiikan sydän. Järjestelmä käy läpi päivät ja etsii sopivia ai
    Työajan ulkopuolelle ei ehdoteta aikoja (esim. 8:00–16:00).
 
 3. **Varaukset**  
-   Haetaan kaikki varaukset kyseiselle päivälle – sekä sinun että valmentajan kalenterista (jos valmentaja on määritelty). Varauksen **sijainti** (location) luetaan; jos päivällä on merkintä, jonka sijainti on "Helsinki", kyseinen päivä käsitellään erityisesti (Location Awareness, v5.6.2).
+   Haetaan kaikki varaukset kyseiselle päivälle – sinun kaikista omista kalentereistasi (v5.8.3) sekä valmentajan kalenterista (jos valmentaja on määritelty). Varauksen **sijainti** (location) luetaan; jos päivällä on merkintä, jonka sijainti on "Helsinki", kyseinen päivä käsitellään erityisesti (Location Awareness, v5.6.2).
 
 4. **Aukkojen etsintä**  
    Algoritmi etenee aikajanalla aina seuraavaan varaukseen asti:
@@ -136,7 +173,7 @@ Järjestelmässä on kaksi tapaa täyttää kalenteri, riippuen **"Maksimoi täy
 
 #### A. "Maksimoi täyttöaste" PÄÄLLÄ (Maximize Mode)
 *Oletus: täyttää kalenterin tiiviisti (Tehopäivät).*
-1.  **Logiikka:** Järjestelmä toistaa projektin kaavaa (Suunnittelu + Teams + Valmistelu) niin monta kertaa kuin hakuvälille mahtuu.
+1.  **Logiikka:** Järjestelmä toistaa projektin kaavaa (Suunnittelu + Teams) niin monta kertaa kuin hakuvälille mahtuu.
 2.  **Käyttötapaus:** "Haluan saada työn tehdyksi mahdollisimman nopeasti. Anna kaikki ajat, jotka sopivat."
 3.  **Valinta (Acceptance):**
     -   **Kaikki setit:** Järjestelmä ehdottaa **kaikkia** löydettyjä aikoja listassa ("kirkkaina").
@@ -157,7 +194,7 @@ Järjestelmässä on kaksi tapaa täyttää kalenteri, riippuen **"Maksimoi täy
 #### Prioriteettijärjestys (molemmat moodit):
 
 3.  **Prioriteettijärjestys:**
-    Kaavan sisällä välilyönnit täytetään tärkeysjärjestyksessä: ensin suunnittelu, sitten Teams, sitten valmistelu.
+    Kaavan sisällä välilyönnit täytetään tärkeysjärjestyksessä: ensin **Suunnittelu**, sitten **Teams-palaveri**.
 
 4.  **Sopivan ajan valinta:**
     Jokaiselle tarvittavalle välille etsitään vapaa aika, joka:
@@ -198,37 +235,32 @@ Ennen merkinnän luontia käyttäjä voi muokata yksittäisiä ehdotuksia (kynä
 
 ---
 
-## Älykäs Uudelleenjärjestely (Smart Rescheduling) ( KESKEN )
+## Älykäs Uudelleenjärjestely (Smart Rescheduling) (v5.9.0)
 
-Kun kalenteri on täysi, "Älykäs haku" voi auttaa löytämään tilaa siirtämällä vähemmän tärkeitä omia varauksia.
+Kun kalenteri on täysi, "Älykäs haku" (checkbox: "Etsi myös siirrettävät ajat") auttaa löytämään tilaa siirtämällä vähemmän tärkeitä omia varauksia.
 
-### Miten se toimii?
+### 1. OR-Tools Optimointi (Backend)
+Sovellus käyttää nyt **Google OR-Tools** -kirjastoa (CP-SAT solver), joka etsii matemaattisesti optimaalisen ratkaisun. Se yrittää:
+1.  Löytää tilaa uudelle projektille.
+2.  Minimoida muutosten määrän (mieluummin yksi siirto kuin viisi).
+3.  Minimoida siirtomatkan (mieluummin siirto samalle päivälle kuin viikon päähän).
 
-Kun valitset **"Etsi myös siirrettävät ajat"**, algoritmi tekee seuraavat asiat:
-1.  **Analyysi**: Se käy läpi varatut ajat ja tunnistaa, mitkä niistä ovat "siirrettäviä".
-2.  **Pisteytys**: Varaus katsotaan siirrettäväksi (Moveable), jos:
-    *   **Olet järjestäjä (Organizer):** Sinulla on valta siirtää se.
-    *   **Ei muita osallistujia:** Kyseessä on oma työaika (esim. "Focus", "Suunnittelu"), ei palaveri.
-    *   **Status on normaali:** Ei ole merkitty "Out of Office" -tilaan.
-    *   **Ei toistuva:** Toistuvien sarjojen siirtäminen on riskialtista, joten niihin ei kosketa.
-3.  **Haku**: Järjestelmä etsii vapaata aikaa *kuvittelemalla*, että nämä siirrettävät varaukset eivät ole tiellä.
-4.  **Ehdotus**: Jos aika löytyy tällaisen varauksen päältä, se ehdotetaan sinulle varoituksella: _"Vapaa JOS siirrät: 'Oma suunnittelu'"_.
+### 2. Mitä se ehdottaa siirrettäväksi?
+Algoritmi koskee vain merkintöihin, jotka ovat turvallisia siirtää:
+*   **Olet järjestäjä (IsOrganizer):** Vain omat varaukset.
+*   **Ei muita osallistujia:** Vain yksilötyöaika (esim. "Suunnittelu", "Focus").
+*   **Ei Teams-palaverit:** Online-kokouksia pidetään kiinteinä.
+*   **Ei toistuvat sarjat:** Toistuvien sarjojen siirto on liian riskialtista.
 
-
-### Mitä se ehdottaa siirrettäväksi?
-
-Sovelluksen itse luomista merkinnöistä:
-
-*   **✅ Suunnittelu (Planning) ja Valmistelu (Preparation):**
-    *   Nämä luodaan ilman muita osallistujia.
-    *   Järjestelmä tulkitsee ne omaksi työajaksi, jota voi tarvittaessa siirtää tärkeämmän tieltä.
-    *   *Esimerkki: "Suunnittelu 1/3: Asiakas Oy"*
-
-*   **❌ Teams-palaveri:**
-    *   Nämä luodaan online-kokouksina.
-    *   Järjestelmä pitää näitä kiinteinä aikatauluvarauksina, eikä ehdota niiden siirtämistä (vaikka olisit niissä yksin).
-
-Tämä on **deterministinen heuristiikka**. Se ei käytä tekoälyä arvailuun, vaan noudattaa tiukkoja sääntöjä (Organizer + No Attendees), jotta se ei koskaan ehdota asiakaspalaverin siirtoa.
+### 3. Käyttäjän valinta (Swap)
+Kun algoritmi löytää ratkaisun, se ei tee muutoksia automaattisesti, vaan **ehdottaa** niitä:
+1.  **Ehdotus:** Listaan ilmestyy kortti, jossa lukee esim. *"Vapaa JOS siirrät: 'Suunnittelu (3/9)'"*.
+2.  **OverlapModal:** Klikkaamalla "EHDOTUS", aukeaa modaali.
+    *   **Vasen puoli:** Nykyinen varaus, joka on tiellä.
+    *   **Oikea puoli (UUSI):** "Siirtoehdotukset". Näyttää mihin aikaan vanha varaus siirtyisi.
+3.  **Suorita vaihto:** Painike "Suorita vaihto" tekee kaksi asiaa atomisesti:
+    1.  **Poistaa** vanhan varauksen (vapauttaen ajan).
+    2.  **Luo** uuden varauksen tilalle.
 
 ---
 
@@ -240,16 +272,11 @@ Jotta sovellus voi toimia älykkäästi, se lukee kalenteristasi seuraavat tiedo
 2.  **Tila:** `showAs` (Onko aika varattu, vapaa, alustava vai "Out of Office")
 3.  **Otsikko:** `subject` (Tarvitaan "Älykkäässä haussa" tunnistamaan omat merkinnät, kuten "Lounas")
 4.  **Osallistujat:** `attendees` (Onko muita mukana? Jos on, emme ehdota siirtoa)
-5.  **Järjestäjä:** `isOrganizer` (Oletko sinä luonut varauksen?)
+5.  **Järjestäjä:** `isOrganizer` (Oletko sinä luonut varauksen? Käytetään oma vs toisen -tunnistukseen)
 6.  **Toistuvuus:** `recurrence`, `type` (Onko kyseessä toistuva sarja?)
+7.  **Body (v5.8.2):** `body` (Kalenterimerkinnän kuvaus. Parsitaan Asiakas ja Lisätiedot, jotta toisen käyttäjän merkitsemät tiedot säilyvät.)
 
-**Huomio:** Sovellus **EI** lue sähköpostien sisältöä, liitetiedostoja tai body-tekstiä. Se käsittelee vain kalenterin metatietoja aikataulutusta varten. Kaikki tiedot käsitellään väliaikaisesti muistissa.
-
-## Yhteenveto
-
-Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. Kaikki tämä tapahtuu yhdellä "Etsi vapaat ajat" -napin painalluksella. **"Etsi varatut ajat"** -nappi näyttää jo luodut merkinnät ilman vapaiden aikojen hakua.
-
----
+**Huomio:** Sovellus **EI** lue sähköpostien sisältöä tai liitetiedostoja. Kalenterimerkinnän `body`-teksti haetaan vain ulkoisten merkintöjen (esim. toisen käyttäjän) asiakas- ja lisätietojen näyttämiseksi – ei muuhun käyttöön. Kaikki tiedot käsitellään väliaikaisesti muistissa.
 
 ## Tietoturvallisuus
 
@@ -259,77 +286,32 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 |-------|----------------|
 | **Rate Limiting** | 100 req / 10 s per käyttäjä tai IP. OAuth callback: 10 req / min per IP (brute-force -suojaus). Estää DoS-hyökkäyksiä. |
 | **JWT-autentikaatio** | Varmistaa, että vain kirjautuneet käyttäjät pääsevät API-endpointeihin. ValidateIssuer/Audience/Lifetime/SigningKey = true, ClockSkew 2 min, ValidAlgorithms = HS256 (estää alg:none). JWT-eventit loggaavat vain devissä. |
+| **Middleware-autentikaatio (v6.0.0)** | Next.js middleware tarkistaa käyttäjäsession palvelintasolla (`supabase.auth.getUser()`). Suojatut reitit (`/calendar`) uudelleenohjaavat kirjautumissivulle ennen sivun renderöintiä. Ei luota pelkkään client-side -tarkistukseen. |
 | **CORS** | Sallii pyynnöt vain määritellyistä alkuperistä (dev: localhost, prod: whitelist). Estää muut sivustot käyttämästä API:asi. |
-| **Security Headers** | Backend: CSP, HSTS jne. Frontend: Middleware lisää CSP (connect-src Supabase + API), X-Content-Type-Options, X-Frame-Options. Vähentävät XSS-, clickjacking- ja MIME-sniffing -riskejä. |
+| **Security Headers** | Backend: CSP, HSTS jne. Frontend: Middleware lisää CSP (connect-src Supabase + API), X-Content-Type-Options (`nosniff`), X-Frame-Options (`DENY`), Referrer-Policy, COOP/CORP. Vähentävät XSS-, clickjacking- ja MIME-sniffing -riskejä. |
 | **HTTPS (tuotanto)** | Pakottaa salatun yhteyden tuotannossa. Suojaa datan man-in-the-middle -hyökkäyksiltä. |
-| **OAuth state + CSRF** | Microsoft-kirjautumisen `state`-parametri on HMAC-allekirjoitettu. Estää väärennetyt OAuth-callbackit. |
-| **Token-salaus** | Microsoft Graph -tokenit salataan (AES-256) ennen tietokantaan tallennusta. Suojaa, vaikka tietokanta vuotaisi. |
-| **Input Validation** | FluentValidation tarkistaa syötteet (esim. preferenssit) ennen käsittelyä. Estää virheellisen tai haitallisen datan. |
+| **OAuth state + CSRF** | Microsoft-kirjautumisen `state`-parametri on HMAC-SHA256-allekirjoitettu. Backend validoi state-arvon. Estää väärennetyt OAuth-callbackit. |
+| **Token-salaus** | Microsoft Graph -tokenit salataan (ASP.NET Core Data Protection API, AES-256) ennen tietokantaan tallennusta. Suojaa, vaikka tietokanta vuotaisi. |
+| **Input Validation (Backend)** | FluentValidation tarkistaa kaikki muokattavat DTO:t (v6.0.0): `CoachingProject`, `ProposedSlot`, `FindSlotsRequest`, `CreateEventsRequest`, `UpdateBookedEventRequest`, `UserPreferences`. Numeriset rajat, merkkijonojen pituudet, URL-formaatit. Estää virheellisen tai haitallisen datan. |
+| **Input Validation (Frontend)** | Zod-skeemoja käytetään lomakkeissa ja API-pyynnöissä. DataAnnotations-attribuutit täydentävät backendin DTO-malleja. |
 | **PII-maskaus** | Sähköposteja ei kirjoiteta logeihin selkokielisinä (maskataan tyyliin `m***@firma.fi`). Vähentää henkilötietojen vuotamista lokista. |
-| **API-avainten suojaus** | Arkaluonteiset avaimet (JWT Secret, Microsoft Graph ClientSecret, ClientId, TenantId, Supabase Url) säilytetään backendin `.env`-tiedostossa, eivät koskaan repossa tai frontendissa. Käytä `.env.example`-pohjaa. Frontend saa vain Supabasen anon key (suunniteltu julkiseksi; RLS rajaa oikeudet). `service_role` -avainta ei käytetä client-puolella. Graph-tokenit salataan tietokantaan (Data Protection API). |
+| **API-avainten suojaus** | Arkaluonteiset avaimet (JWT Secret, Microsoft Graph ClientSecret/ClientId/TenantId, Supabase Url) säilytetään backendin `.env`-tiedostossa, eivät koskaan repossa tai frontendissa. Frontend saa vain Supabasen anon key (suunniteltu julkiseksi; RLS rajaa oikeudet). `service_role` -avainta ei käytetä client-puolella. |
+| **Snapshot-kansiosuojaus (v6.0.0)** | `.gitignore` estää IDE:n snapshot-kansioiden (`.lh/`, `.history/`) commitoinnin. Estää `.env`-kopioiden vahingollisen paljastumisen. |
 | **Microsoft OAuth TenantId** | Käytä `TenantId=common` henkilökohtaisten Microsoft-tilien (outlook.com, hotmail.com) tukemiseksi. Org-spesifiselle käytölle käytä Azure AD:n tenant-ID:tä. |
-| **Lokituksen turvallisuus** | OAuth- ja Graph API -virhevastauksia ei logiteta (estää token- ja PII-vuodon). Logitetaan vain StatusCode ja ReasonPhrase. |
-| **Frontend build-tarkistus** | Next.js build epäonnistuu, jos `NEXT_PUBLIC_`-avaimissa on `SERVICE_ROLE` tai `SECRET_KEY`. Estää vahingollisen paljastuksen build-vaiheessa. |
-| **postMessage origin-validoinnit** | Microsoft OAuth -popup lähettää `msauth-callback`-viestin frontendille. Frontend tarkistaa `event.origin` ja hyväksyy vain backendin OAuth-callback-origin (`NEXT_PUBLIC_API_URL`). Estää, että vihamielinen sivusto lähettäisi vääriä viestejä. Backend käyttää `Cors:AllowedOrigins` -konfiguraatiota postMessage `targetOrigin`-parametrina (ei wildcardia `*`). |
-| **Tuotantologitus (frontend)** | `console.error` rajoitettu kehitysympäristöön (`NODE_ENV === 'development'`). Tuotannossa virheitä ei logata selaimen konsoliin – vähentää token- tai PII-vuodon riskiä, jos virheolio sisältäisi arkaluontoisia tietoja. |
-| **Dependency Security (Supply Chain)** | Backend: `dotnet list package --vulnerable`. Frontend: `npm audit`. Suositus: Dependabot/Renovate automaattisille PR:ille, säännöllinen patchaus (viikoittain), kriittisten CVE:tien korjaus 48 h. Supply chain -riskit (vahingoittuneet paketit, typosquatting) ovat merkittävämpiä kuin suorat injektiot. |
+| **Lokituksen turvallisuus** | OAuth- ja Graph API -virhevastauksia ei logiteta kokonaan (estää token- ja PII-vuodon). Logitetaan vain StatusCode ja ReasonPhrase. |
+| **Frontend build-tarkistus** | `next.config.ts` tarkistaa build-vaiheessa, ettei `NEXT_PUBLIC_`-avaimissa ole `SERVICE_ROLE` tai `SECRET_KEY`. Epäonnistuu, jos yritetään paljastaa arkaluontoisia avaimia. |
+| **postMessage origin-validoinnit** | Microsoft OAuth -popup lähettää `msauth-callback`-viestin frontendille. Frontend tarkistaa `event.origin` ja hyväksyy vain backendin OAuth-callback-origin (`NEXT_PUBLIC_API_URL`). Estää vihamielisten sivustojen viestit. Backend käyttää `Cors:AllowedOrigins` `targetOrigin`-parametrina (ei wildcardia `*`). |
+| **Tuotantologitus (frontend)** | `console.error` rajoitettu kehitysympäristöön (`NODE_ENV === 'development'`). Tuotannossa virheitä ei logata selaimen konsoliin – vähentää token- tai PII-vuodon riskiä. |
+| **Dependency Security** | Backend: `dotnet list package --vulnerable`. Frontend: `npm audit`. Suositus: Dependabot/Renovate automaattisille PR:ille, säännöllinen patchaus (viikoittain), kriittisten CVE:tien korjaus 48 h. |
+| **SQL Injection -suojaus** | Entity Framework Core / LINQ käytössä kaikessa tietokantakäytössä. Ei raakaa SQL:ää käyttäjäsyötteillä. |
 
 ---
 
+## Yhteenveto
 
-## Korjattavaa
-
-1. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta jää oikea järjestys )**
-
----
-
-## Suoritetut Korjaukset
-
-1. **Kalenteri merkinnät näkyviin 6kk ajalta**
-2. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
-3. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
-4. **Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
-5. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnittelua. Omat tekstiboxit / Save / Load asetukset.**
-6. **Slot Remainder Fix:** Jäännösajan palautus käyttöön.
-7. **Varatut ajat -osio (v5.5.0):** Täysi hallinta varatuille ajoille:
-    - **Haku:** Vapaatekstihaku (nimi, asiakas, pvm)
-    - **Suodatus:** Checkboxit Suunnittelu/Teams ja Pvm-valitsin (MultiSelect)
-    - **Poisto:** Yksittäinen poisto roskakorista ja massapoisto ("Poista näkyvät")
-    - **Graph-integraatio:** Poisto poistaa merkinnän myös Microsoft-kalenterista
-
-8. **Päällekkäisyyskorjaus (v5.5.1):**
-    - **Aikavyöhyke:** Graph API palauttaa joskus UTC-aikoja (`Z`-pääte) huolimatta pyynnöstä. Järjestelmä tunnistaa nämä nyt ja muuntaa oikeaan Helsinki-aikaan.
-    - **Vapaat ajat:** Kalenterimerkinnät, joiden tila on "Free", eivät enää estä ajanvarausta.
-
-9. **Päällekkäisten aikojen ehdotus – sivutus ja hakuväli (v5.5.2):**
-    - **Sivutus:** Microsoft Graph `calendarView` palauttaa tapahtumat sivuittain. Järjestelmä seuraa nyt `@odata.nextLink`-linkkiä ja hakee kaikki sivut (max 999 tapahtumaa/sivu). Aiemmin vain ensimmäinen sivu haettiin, jolloin osa varauksista jäi näkymättä ja syntyi päällekkäisiä ehdotuksia.
-    - **Hakutapa:** Hakuvälin viimeinen päivä jäi aiemmin pois. Graph API:lle välitetään nyt `searchEnd.Date.AddDays(1)`, jotta viimeinen päivä tulee mukaan.
-
-10. **Layoutin responsiivisuus (v5.5.3):**
-    - **Komponentit:** `SlotList` ja `BookedTimesPanel` on päivitetty reagoimaan paremmin kapeaan tilaan. Korttien sisältö ja hakupalkit rivittyvät pystysuuntaan (stack) tarvittaessa, estäen sisällön leikkautumisen tai ylivuodon.
-
-11. **Ulkoiset kalenterimerkinnät (v5.6.1):**
-    - **Näkyvyys:** Sovellus hakee nyt myös Microsoft Kalenterin omat merkinnät (esim. Outlookissa tehdyt varaukset) ja näyttää ne harmaina palkkeina ("Muu varaus (Outlook)"). Tämä selkeyttää, miksi tietyt ajat eivät ole valittavissa.
-
-12. **Sijainnin tunnistus ja Tehopäivät (v5.6.2):**
-    - **Sijainnin tunnistus (Location Awareness):** Jos kalenterissa on merkintä, jonka sijaintina on "Helsinki", sovellus estää Teams-palaverit kyseiseltä päivältä (oletetaan lähityöpäiväksi/matkustukseksi). Suunnitteluajoille annetaan varoitus.
-    - **Täyttöasteen valinta:** Käyttöliittymässä checkbox **"Maksimoi täyttöaste"** (ent. "Toista kaavaa"). Valinta ohjaa, täytetäänkö päivät tiiviisti (Tehopäivät) vai jaetaanko työkuorma tasaisesti viikoille (Tasainen/Stressitön).
-
-13. **Muokkausmodaalin kentät – täysi synkronointi (v5.6.3):**
-    - **Lisätiedot:** Kentän sisältö päivittyy nyt Microsoft-kalenterin body-kenttään, tietokantaan (CalendarEvent.Description) ja frontend-laatikkoon (kalenteri-/korttinäkymä). Aiemmin tallennus ei välittynyt API:lle eikä Graphiin.
-    - **Asiakas:** Asiakas-kentän muokkaus päivittyy tietokantaan (CalendarEvent.ClientName), Graphin bodyyn ("Asiakas: ...") ja frontend-laatikkoon. Optimistic update + uudelleenlataus.
-    - **Otsikko:** Asiakasnimi poistettu otsikosta – näkyy nyt vain "Suunnittelu (1/4)" tms.; asiakas omalla rivillään "Asiakas: ...".
-
-14. **Sijainti-kenttä muokkausmodaaliin (v5.6.3):**
-    - **Modaali:** Uusi kenttä "Sijainti" (MapPin-ikoni). Synkronoituu Microsoft Graphin `location.displayName` -kenttään ja tietokantaan (CalendarEvent.Location).
-    - **Laatikot:** Sijainti näytetään ehdotus- ja varattujen slottien laatikossa vain jos kenttä ei ole tyhjä. Sijainnin tunnistus (Location Awareness, Helsinki-päivä) toimii edelleen samalla tavalla.
-
-15. **Matkustuspäivävaroitus laatikon sisällä (v5.6.3):**
-    - **Ehdotusslotti:** Kun ehdotus on matkustuspäivällä (sijainti Helsinki), laatikon sisällä näkyy varoituskolmio ja teksti "Mahdollinen matkustuspäivä" (amber-tyyli).
-    - **Varattu slotti:** Kun merkinnän sijainti on "Helsinki", sama varoitus laatikon sisällä.
-    - **Korttinäkymä:** Kortilla lyhyt teksti "Mahdollinen matkustuspäivä" varoituskolmion kanssa (täysi viesti tooltipissa).
+Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. OR-Tools optimointi auttaa löytämään tilaa täydestä kalenterista siirtämällä joustavia tehtäviä.
 
 ---
 
-**Dokumentin versio:** 5.6.3 | **Päivitetty:** 2026-02-18 (korjaukset 13–15 dokumentoitu)
+**Dokumentin versio:** 6.0.1 | **Päivitetty:** 2026-03-07 (Tietoturvaosio, middleware-auth, laajennettu backend-validointi, preset/projektityyppitaulukko korjattu)
 
