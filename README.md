@@ -362,12 +362,13 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 14. **Sijainti-kenttä muokkausmodaaliin (v5.6.3):**
     - **Modaali:** Uusi kenttä "Sijainti" (MapPin-ikoni). Synkronoituu Microsoft Graphin `location.displayName` -kenttään ja tietokantaan (CalendarEvent.Location).
     - **Laatikot:** Sijainti näytetään ehdotus- ja varattujen slottien laatikossa vain jos kenttä ei ole tyhjä. Sijainnin tunnistus (Location Awareness, Helsinki-päivä) toimii edelleen samalla tavalla.
-## Yhteenveto
 
 15. **Matkustuspäivävaroitus laatikon sisällä (v5.6.3):**
     - **Ehdotusslotti:** Kun ehdotus on matkustuspäivällä (sijainti Helsinki), laatikon sisällä näkyy varoituskolmio ja teksti "Mahdollinen matkustuspäivä" (amber-tyyli).
     - **Varattu slotti:** Kun merkinnän sijainti on "Helsinki", sama varoitus laatikon sisällä.
     - **Korttinäkymä:** Kortilla lyhyt teksti "Mahdollinen matkustuspäivä" varoituskolmion kanssa (täysi viesti tooltipissa).
+      
+---
 
 ## Yhteenveto
 
