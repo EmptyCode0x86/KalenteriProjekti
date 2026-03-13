@@ -307,6 +307,68 @@ Sovellus käyttää useita turvatoimia API- ja käyttäjädatan suojaukseen:
 
 ---
 
+---
+
+
+## Korjattavaa
+
+1. **Kategorioiden mukaan priorisointi ( Puhelimessa kuva. Monalta jää oikea järjestys )**
+| **Lokituksen turvallisuus** | OAuth- ja Graph API -virhevastauksia ei logiteta kokonaan (estää token- ja PII-vuodon). Logitetaan vain StatusCode ja ReasonPhrase. |
+| **Frontend build-tarkistus** | `next.config.ts` tarkistaa build-vaiheessa, ettei `NEXT_PUBLIC_`-avaimissa ole `SERVICE_ROLE` tai `SECRET_KEY`. Epäonnistuu, jos yritetään paljastaa arkaluontoisia avaimia. |
+| **postMessage origin-validoinnit** | Microsoft OAuth -popup lähettää `msauth-callback`-viestin frontendille. Frontend tarkistaa `event.origin` ja hyväksyy vain backendin OAuth-callback-origin (`NEXT_PUBLIC_API_URL`). Estää vihamielisten sivustojen viestit. Backend käyttää `Cors:AllowedOrigins` `targetOrigin`-parametrina (ei wildcardia `*`). |
+| **Tuotantologitus (frontend)** | `console.error` rajoitettu kehitysympäristöön (`NODE_ENV === 'development'`). Tuotannossa virheitä ei logata selaimen konsoliin – vähentää token- tai PII-vuodon riskiä. |
+| **Dependency Security** | Backend: `dotnet list package --vulnerable`. Frontend: `npm audit`. Suositus: Dependabot/Renovate automaattisille PR:ille, säännöllinen patchaus (viikoittain), kriittisten CVE:tien korjaus 48 h. |
+| **SQL Injection -suojaus** | Entity Framework Core / LINQ käytössä kaikessa tietokantakäytössä. Ei raakaa SQL:ää käyttäjäsyötteillä. |
+
+---
+
+## Suoritetut Korjaukset
+
+1. **Kalenteri merkinnät näkyviin 6kk ajalta**
+2. **Suunnitelu aikataulut hakee klo 10 eteenpäin vain**
+3. **Microsoft kirjautuminen ei toiminut, Osoite localhost:8080 API Calendar**
+4. **Suunnittelu labelien värit vastaa, Valitse ajatboxien reunoja + Otsikot vastaa väriä.**
+5. **Projektin laajuus customoituna. Suunnittelu / valmistelu = Molemmat suunnittelua. Omat tekstiboxit / Save / Load asetukset.**
+6. **Slot Remainder Fix:** Jäännösajan palautus käyttöön.
+7. **Varatut ajat -osio (v5.5.0):** Täysi hallinta varatuille ajoille:
+    - **Haku:** Vapaatekstihaku (nimi, asiakas, pvm)
+    - **Suodatus:** Checkboxit Suunnittelu/Teams ja Pvm-valitsin (MultiSelect)
+    - **Poisto:** Yksittäinen poisto roskakorista ja massapoisto ("Poista näkyvät")
+    - **Graph-integraatio:** Poisto poistaa merkinnän myös Microsoft-kalenterista
+
+8. **Päällekkäisyyskorjaus (v5.5.1):**
+    - **Aikavyöhyke:** Graph API palauttaa joskus UTC-aikoja (`Z`-pääte) huolimatta pyynnöstä. Järjestelmä tunnistaa nämä nyt ja muuntaa oikeaan Helsinki-aikaan.
+    - **Vapaat ajat:** Kalenterimerkinnät, joiden tila on "Free", eivät enää estä ajanvarausta.
+
+9. **Päällekkäisten aikojen ehdotus – sivutus ja hakuväli (v5.5.2):**
+    - **Sivutus:** Microsoft Graph `calendarView` palauttaa tapahtumat sivuittain. Järjestelmä seuraa nyt `@odata.nextLink`-linkkiä ja hakee kaikki sivut (max 999 tapahtumaa/sivu). Aiemmin vain ensimmäinen sivu haettiin, jolloin osa varauksista jäi näkymättä ja syntyi päällekkäisiä ehdotuksia.
+    - **Hakutapa:** Hakuvälin viimeinen päivä jäi aiemmin pois. Graph API:lle välitetään nyt `searchEnd.Date.AddDays(1)`, jotta viimeinen päivä tulee mukaan.
+
+10. **Layoutin responsiivisuus (v5.5.3):**
+    - **Komponentit:** `SlotList` ja `BookedTimesPanel` on päivitetty reagoimaan paremmin kapeaan tilaan. Korttien sisältö ja hakupalkit rivittyvät pystysuuntaan (stack) tarvittaessa, estäen sisällön leikkautumisen tai ylivuodon.
+
+11. **Ulkoiset kalenterimerkinnät (v5.6.1):**
+    - **Näkyvyys:** Sovellus hakee nyt myös Microsoft Kalenterin omat merkinnät (esim. Outlookissa tehdyt varaukset) ja näyttää ne harmaina palkkeina ("Muu varaus (Outlook)"). Tämä selkeyttää, miksi tietyt ajat eivät ole valittavissa.
+
+12. **Sijainnin tunnistus ja Tehopäivät (v5.6.2):**
+    - **Sijainnin tunnistus (Location Awareness):** Jos kalenterissa on merkintä, jonka sijaintina on "Helsinki", sovellus estää Teams-palaverit kyseiseltä päivältä (oletetaan lähityöpäiväksi/matkustukseksi). Suunnitteluajoille annetaan varoitus.
+    - **Täyttöasteen valinta:** Käyttöliittymässä checkbox **"Maksimoi täyttöaste"** (ent. "Toista kaavaa"). Valinta ohjaa, täytetäänkö päivät tiiviisti (Tehopäivät) vai jaetaanko työkuorma tasaisesti viikoille (Tasainen/Stressitön).
+
+13. **Muokkausmodaalin kentät – täysi synkronointi (v5.6.3):**
+    - **Lisätiedot:** Kentän sisältö päivittyy nyt Microsoft-kalenterin body-kenttään, tietokantaan (CalendarEvent.Description) ja frontend-laatikkoon (kalenteri-/korttinäkymä). Aiemmin tallennus ei välittynyt API:lle eikä Graphiin.
+    - **Asiakas:** Asiakas-kentän muokkaus päivittyy tietokantaan (CalendarEvent.ClientName), Graphin bodyyn ("Asiakas: ...") ja frontend-laatikkoon. Optimistic update + uudelleenlataus.
+    - **Otsikko:** Asiakasnimi poistettu otsikosta – näkyy nyt vain "Suunnittelu (1/4)" tms.; asiakas omalla rivillään "Asiakas: ...".
+
+14. **Sijainti-kenttä muokkausmodaaliin (v5.6.3):**
+    - **Modaali:** Uusi kenttä "Sijainti" (MapPin-ikoni). Synkronoituu Microsoft Graphin `location.displayName` -kenttään ja tietokantaan (CalendarEvent.Location).
+    - **Laatikot:** Sijainti näytetään ehdotus- ja varattujen slottien laatikossa vain jos kenttä ei ole tyhjä. Sijainnin tunnistus (Location Awareness, Helsinki-päivä) toimii edelleen samalla tavalla.
+## Yhteenveto
+
+15. **Matkustuspäivävaroitus laatikon sisällä (v5.6.3):**
+    - **Ehdotusslotti:** Kun ehdotus on matkustuspäivällä (sijainti Helsinki), laatikon sisällä näkyy varoituskolmio ja teksti "Mahdollinen matkustuspäivä" (amber-tyyli).
+    - **Varattu slotti:** Kun merkinnän sijainti on "Helsinki", sama varoitus laatikon sisällä.
+    - **Korttinäkymä:** Kortilla lyhyt teksti "Mahdollinen matkustuspäivä" varoituskolmion kanssa (täysi viesti tooltipissa).
+
 ## Yhteenveto
 
 Lyhyesti: järjestelmä pilkkoo projektin tarvitsemiin aikoihin, etsii kalenterista vapaat "reiät" (huomioiden tauot ja työajat), sovittaa palaset paikoilleen ja suosii aamupäiväaikoja sekä valmennuspäivän läheisiä slotteja. OR-Tools optimointi auttaa löytämään tilaa täydestä kalenterista siirtämällä joustavia tehtäviä.
